@@ -1,0 +1,46 @@
+# Module 2, step 5: root Applications turn on GitOps delivery for the platform repository.
+# - platform-system watches api/ and delivers the AppEnvironment XRD and Composition.
+# - platform-requests watches requests/*.yaml and delivers environment requests.
+# Both sync automatically and self-heal, but never prune: deleting a file does not tear down an environment.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-system
+  namespace: argocd
+spec:
+  project: platform-system
+  source:
+    repoURL: "${PLATFORM_REPO_URL}"
+    targetRevision: main
+    path: api
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions: [ServerSideApply=true]
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-requests
+  namespace: argocd
+spec:
+  project: platform-system
+  source:
+    repoURL: "${PLATFORM_REPO_URL}"
+    targetRevision: main
+    path: requests
+    directory:
+      include: "*.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true

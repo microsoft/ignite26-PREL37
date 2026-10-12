@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.application }}
+  description: Delivered into the ${{ values.team }} managed namespace by the AI application environment template.
+  links:
+    - url: http://${{ values.team }}.localhost:8080
+      title: Application
+    - url: https://localhost:8443/applications/argocd/${{ values.application }}
+      title: Argo CD delivery
+    - url: ${{ values.configUrl }}
+      title: Application configuration
+spec:
+  type: service
+  lifecycle: experimental
+  owner: ${{ values.owner }}

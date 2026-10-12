@@ -1,0 +1,33 @@
+# Module 2, step 2: connects provider-opentofu to private Git and remote state.
+# - credentials: the module-git-credentials Secret (a scoped GitHub token) lets the
+#   provider download the private OpenTofu module. Your personal GitHub login is not used.
+# - backend: OpenTofu authenticates to Azure with the control cluster's workload
+#   identity (use_oidc) and keeps state in your lab's storage account.
+apiVersion: opentofu.m.upbound.io/v1beta1
+kind: ClusterProviderConfig
+metadata:
+  name: prel37
+spec:
+  pluginCache: true
+  credentials:
+    - filename: .git-credentials
+      source: Secret
+      secretRef:
+        namespace: crossplane-system
+        name: module-git-credentials
+        key: credentials
+  configuration: |
+    terraform {
+      backend "azurerm" {
+        use_oidc             = true
+        use_azuread_auth     = true
+        oidc_token_file_path = "/var/run/secrets/azure/tokens/azure-identity-token"
+        client_id            = "${PROVISIONER_CLIENT_ID}"
+        tenant_id            = "${AZURE_TENANT_ID}"
+        subscription_id      = "${AZURE_SUBSCRIPTION_ID}"
+        resource_group_name  = "${AKS_RESOURCE_GROUP}"
+        storage_account_name = "${STATE_ACCOUNT}"
+        container_name       = "${STATE_CONTAINER}"
+        key                  = "${STATE_KEY}"
+      }
+    }

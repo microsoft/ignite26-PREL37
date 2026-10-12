@@ -1,0 +1,52 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: app-profile
+  title: Resize an application
+  description: Propose an approved resource profile for an application your team owns.
+spec:
+  owner: group:default/platform
+  type: service
+  parameters:
+    - title: Application resources
+      required: [component, profile]
+      properties:
+        component:
+          title: Application
+          type: string
+          description: An application your team owns. Its catalog name matches its apps/<name> folder in the app-deploy repository.
+          ui:field: OwnedEntityPicker
+          ui:options:
+            catalogFilter:
+              kind: Component
+        profile:
+          title: Resource profile
+          type: string
+          # Module 4: add standard and explain the supported choice.
+          description: Choose the small profile.
+          enum: [small]
+          default: small
+  steps:
+    - id: profile
+      name: Fetch the approved profile
+      action: fetch:plain:file
+      input:
+        url: "${PLATFORM_BROWSER_URL}/blob/main/profiles/workload-${{ parameters.profile }}.yaml"
+        targetPath: "change/apps/${{ parameters.component | parseEntityRef | pick('name') }}/profile.yaml"
+    - id: publish
+      name: Propose the profile change
+      action: publish:github:pull-request
+      input:
+        repoUrl: "${APP_REPO_SELECTOR}"
+        sourcePath: change
+        branchName: "backstage/${{ parameters.component | parseEntityRef | pick('name') }}-profile-${{ parameters.profile }}"
+        targetBranchName: main
+        title: "Use the ${{ parameters.profile }} profile for ${{ parameters.component | parseEntityRef | pick('name') }}"
+        description: "Changes only the approved application resources. Review and merge after the lab checks pass."
+        update: true
+  output:
+    links:
+      - title: Review the pull request
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Follow application delivery in Argo CD
+        url: "https://localhost:8443/applications/argocd/${{ parameters.component | parseEntityRef | pick('name') }}"

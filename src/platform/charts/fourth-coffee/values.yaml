@@ -1,0 +1,58 @@
+# Workshop adapter: identity and Gateway bindings stay platform-owned.
+image:
+  registry: ghcr.io/pauldotyu
+  repository: fourth-coffee
+  tag: 0.1.0-12.1.ge412f12
+  digest: sha256:ece6b82e6411d47a17c48e6b550eac0571e19818ecf5b1fe1d4ef0b2113fa043
+  pullPolicy: IfNotPresent
+workloadIdentity:
+  # Set by the platform-owned Argo CD Application from the environment binding: one ServiceAccount
+  # per model-calling component, keyed by component name. Do not set it in app-deploy.
+  serviceAccounts: {}
+extraEnvFrom:
+  - configMapRef:
+      name: platform-context
+config:
+  LOG_LEVEL: INFO
+  ENABLE_INSTRUMENTATION: "true"
+  ENABLE_SENSITIVE_DATA: "false"
+  OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "false"
+  FOURTH_COFFEE_MCP_URL: http://fourth-coffee-mcp:8101/mcp/
+  OPS_AGENT_URL: http://ops-agent:8202
+  OPS_AGENT_PUBLIC_BASE_URL: http://ops-agent:8202
+  OPS_DEMO_WORK_SECONDS: "0"
+  OPS_DEMO_CONCURRENCY: "2"
+# Set by the platform-owned Argo CD Application to <team>.localhost. Do not set it in app-deploy.
+route:
+  hostname: ""
+components:
+  fourthCoffeeMcp:
+    name: fourth-coffee-mcp
+    component: mcp
+    port: 8101
+    servicePort: 8101
+    workloadIdentity: false
+    startupFailureThreshold: 12
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 256Mi}
+  opsAgent:
+    name: ops-agent
+    component: a2a
+    port: 8202
+    servicePort: 8202
+    workloadIdentity: true
+    startupFailureThreshold: 27
+    resources:
+      requests: {cpu: 200m, memory: 256Mi}
+      limits: {cpu: 1000m, memory: 768Mi}
+  concierge:
+    name: concierge
+    component: web
+    port: 8301
+    servicePort: 80
+    workloadIdentity: true
+    startupFailureThreshold: 18
+    resources:
+      requests: {cpu: 200m, memory: 256Mi}
+      limits: {cpu: 1000m, memory: 768Mi}

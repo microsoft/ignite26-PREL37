@@ -1,0 +1,13 @@
+# One ServiceAccount per model-calling agent, keyed by agent name, valued by its Azure identity client ID.
+agents: {}
+modelEndpoint: ""
+modelDeployment: ""
+otlp:
+  tracesEndpoint: ""
+  logsEndpoint: ""
+  metricsEndpoint: ""
+  applicationId: ""
+# The application pod the shared Gateway may reach. Matches the supplied chart's routed component.
+gatewayBackend:
+  name: concierge
+  port: 8301

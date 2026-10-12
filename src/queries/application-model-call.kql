@@ -1,0 +1,19 @@
+// One row per chat message that called the approved model in the last 30 minutes.
+// Agents send authenticated native OTLP directly to cloud ingestion, landing in Log Analytics OTelSpans.
+// Module 3 runs this from the terminal and prepends: let app = "<Application Insights resource ID>";
+OTelSpans
+| where TimeGenerated > ago(30m)
+| where _ResourceId =~ app
+| where Kind == "Server" and Name == "POST /api/chat"
+| project TraceId, RequestTime = TimeGenerated, RequestSuccess = Success
+| join kind=inner (
+    OTelSpans
+    | where TimeGenerated > ago(30m)
+    | where _ResourceId =~ app
+    | where Kind == "Client" and Target has "openai.azure.com"
+    | project TraceId, ModelTarget = Target, ModelSuccess = Success,
+              ModelResult = ResultCode, ModelDurationMs = round(todouble(DurationMs))
+  ) on TraceId
+| project RequestTime, TraceId, RequestSuccess,
+          ModelTarget, ModelSuccess, ModelResult, ModelDurationMs
+| order by RequestTime desc

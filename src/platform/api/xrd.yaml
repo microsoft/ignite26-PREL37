@@ -1,0 +1,89 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: appenvironments.platform.prel37.example
+spec:
+  scope: Cluster
+  group: platform.prel37.example
+  names:
+    kind: AppEnvironment
+    plural: appenvironments
+  defaultCompositionRef:
+    name: app-environment
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              # Module 2: add costCenter to this required list.
+              required: [team, application, owner]
+              properties:
+                team:
+                  type: string
+                  description: Application team. Names the managed namespace and the team's Azure resources. One AppEnvironment per team per cluster.
+                  pattern: "^[a-z]([a-z0-9-]{0,18}[a-z0-9])?$"
+                application:
+                  type: string
+                  description: Application name. Names the platform-owned Argo CD Application and the apps/<application> folder in the app-deploy repository. Unique across teams.
+                  pattern: "^[a-z]([a-z0-9-]{0,38}[a-z0-9])?$"
+                chart:
+                  type: string
+                  description: Platform-approved delivery chart under charts/.
+                  enum: [fourth-coffee]
+                  default: fourth-coffee
+                owner:
+                  type: string
+                  description: Backstage catalog owner of the application, for example group:default/beans.
+                  pattern: "^group:default/[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
+                costCenter:
+                  type: string
+                  pattern: "^CC-[0-9]{4}$"
+                requesterObjectId:
+                  type: string
+                  description: Entra object ID of the user or group that gets AKS desktop project access to the namespace and Monitoring Reader on its Application Insights resource.
+                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                requesterPrincipalType:
+                  type: string
+                  enum: [User, Group]
+                  default: User
+                namespaceClass:
+                  type: string
+                  enum: [ai-dev]
+                  default: ai-dev
+            status:
+              type: object
+              properties:
+                namespaceId:
+                  type: string
+                appInsightsResourceId:
+                  type: string
+                baselineReady:
+                  type: boolean
+                binding:
+                  type: object
+                  description: What the application team needs to deploy into this environment.
+                  properties:
+                    namespace:
+                      type: string
+                    serviceAccountNames:
+                      type: array
+                      description: One ServiceAccount per model-calling component, each with its own Azure identity. The platform assigns them; the application team does not set them.
+                      items:
+                        type: string
+                    configMapName:
+                      type: string
+                    argoProject:
+                      type: string
+                    argoApplication:
+                      type: string
+                    configPath:
+                      type: string
+                      description: Folder in the app-deploy repository that holds values.yaml and profile.yaml.
+                    appUrl:
+                      type: string
+                      description: Local URL of the application through the shared Gateway tunnel.

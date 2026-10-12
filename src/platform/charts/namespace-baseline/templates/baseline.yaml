@@ -1,0 +1,62 @@
+{{- if not .Values.agents }}
+{{- fail "agents is required: one agent name to identity client ID entry per model-calling component" }}
+{{- end }}
+{{- range $signal := list "tracesEndpoint" "logsEndpoint" "metricsEndpoint" }}
+{{- $endpoint := required (printf "otlp.%s is required" $signal) (index $.Values.otlp $signal) }}
+{{- if not (hasPrefix "https://" $endpoint) }}
+{{- fail (printf "otlp.%s must be a cloud HTTPS endpoint" $signal) }}
+{{- end }}
+{{- end }}
+{{- range $agent := keys .Values.agents | sortAlpha }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $agent }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    azure.workload.identity/client-id: {{ required (printf "client ID for agent %s is required" $agent) (index $.Values.agents $agent) | quote }}
+---
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-context
+  namespace: {{ .Release.Namespace }}
+data:
+  OPENAI_BASE_URL: {{ required "modelEndpoint is required" .Values.modelEndpoint | quote }}
+  OPENAI_CHAT_MODEL: {{ required "modelDeployment is required" .Values.modelDeployment | quote }}
+  OPENAI_AUTH_MODE: workload_identity
+  OTEL_EXPORTER_OTLP_AUTH_MODE: workload_identity
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: {{ .Values.otlp.tracesEndpoint | quote }}
+  OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: {{ .Values.otlp.logsEndpoint | quote }}
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: {{ .Values.otlp.metricsEndpoint | quote }}
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+  OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: DELTA
+  OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION: base2_exponential_bucket_histogram
+  OTEL_RESOURCE_ATTRIBUTES: {{ printf "microsoft.applicationId=%s" (required "otlp.applicationId is required" .Values.otlp.applicationId) | quote }}
+  OTEL_SERVICE_NAMESPACE: {{ .Release.Namespace }}
+  ENABLE_INSTRUMENTATION: "true"
+  ENABLE_SENSITIVE_DATA: "false"
+  OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "false"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-platform-gateway
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.gatewayBackend.name }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: platform-gateway
+          podSelector:
+            matchLabels:
+              gateway.networking.k8s.io/gateway-name: tenants
+      ports:
+        - protocol: TCP
+          port: {{ .Values.gatewayBackend.port }}

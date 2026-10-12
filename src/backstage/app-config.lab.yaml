@@ -1,0 +1,42 @@
+app:
+  title: PREL37 application platform
+  baseUrl: http://localhost:3000
+  listen:
+    host: 127.0.0.1
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    host: 127.0.0.1
+    port: 7007
+  cors:
+    origin: http://localhost:3000
+  database:
+    client: better-sqlite3
+    connection:
+      directory: ${LAB_ROOT}/.state/backstage
+auth:
+  environment: development
+  providers:
+    guest:
+      userEntityRef: user:default/learner
+      ownershipEntityRefs: [group:default/beans]
+      dangerouslyAllowOutsideDevelopment: false
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location, User, Group]
+    - allow: [Template]
+      locations:
+        - type: url
+          pattern: "${PLATFORM_BROWSER_URL}/*/main/backstage/templates/**"
+  locations:
+    # Glob, so catalog entries added by the AI application environment template appear after their PR merges.
+    - type: url
+      target: "${PLATFORM_BROWSER_URL}/blob/main/catalog/*.yaml"
+    - type: url
+      target: "${PLATFORM_BROWSER_URL}/blob/main/backstage/templates/ai-app/template.yaml"
+    - type: url
+      target: "${PLATFORM_BROWSER_URL}/blob/main/backstage/templates/app-environment/template.yaml"

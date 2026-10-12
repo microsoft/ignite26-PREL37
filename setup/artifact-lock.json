@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "application": {
+    "repository": "https://github.com/pauldotyu/fourth-coffee.git",
+    "sourceRevision": "969ca1acae851d0ef3cb60619d5e0d6e90523fda",
+    "imageRepository": "ghcr.io/pauldotyu/fourth-coffee",
+    "imageTag": "0.1.0-12.1.ge412f12",
+    "imageDigest": "sha256:ece6b82e6411d47a17c48e6b550eac0571e19818ecf5b1fe1d4ef0b2113fa043",
+    "nativeOtlpWorkloadIdentity": true,
+    "platform": "linux/amd64",
+    "deliveryChartPath": "charts/fourth-coffee",
+    "upstreamChart": {
+      "repository": "oci://ghcr.io/pauldotyu/charts/fourth-coffee",
+      "version": "0.1.0-12.1.ge412f12",
+      "digest": "sha256:3eeb4e0eef43cff626bfd03309d3953532caa5a90a642d5d4f4b094384c6a775"
+    }
+  },
+  "backstage": {
+    "repository": "https://github.com/pauldotyu/backstage.git",
+    "sourceRevision": "0168b0a2b63470d981ad55705cb819fdbf644a2d",
+    "release": "1.55.0",
+    "yarn": "4.13.0",
+    "nodeMajor": 24
+  },
+  "crossplane": {
+    "chartVersion": "2.4.2",
+    "provider": "xpkg.upbound.io/upbound/provider-opentofu:v1.1.10",
+    "environmentFunction": "xpkg.crossplane.io/crossplane-contrib/function-environment-configs:v0.9.0",
+    "templateFunction": "xpkg.crossplane.io/crossplane-contrib/function-go-templating:v0.13.0",
+    "readyFunction": "xpkg.crossplane.io/crossplane-contrib/function-auto-ready:v0.6.9"
+  },
+  "providers": {
+    "azurerm": "5.9.0",
+    "azapi": "2.13.0",
+    "azuread": "3.10.0",
+    "helm": "3.3.0"
+  },
+  "rehearsal": {
+    "status": "pending",
+    "note": "Fourth Coffee release 0.1.0-12.1.ge412f12 has verified GHCR image/chart digests, linux/amd64 support, native OTLP authentication source, and a successful CI run at revision 969ca1acae851d0ef3cb60619d5e0d6e90523fda. The lab uses a Git-pinned delivery adapter. Live Azure ingestion, token renewal, and the full workshop rehearsal remain pending."
+  }
+}

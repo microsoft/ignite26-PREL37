@@ -1,0 +1,13 @@
+components:
+  fourthCoffeeMcp:
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: 500m, memory: 256Mi}
+  opsAgent:
+    resources:
+      requests: {cpu: 400m, memory: 512Mi}
+      limits: {cpu: 1000m, memory: 1536Mi}
+  concierge:
+    resources:
+      requests: {cpu: 400m, memory: 512Mi}
+      limits: {cpu: 1000m, memory: 1536Mi}

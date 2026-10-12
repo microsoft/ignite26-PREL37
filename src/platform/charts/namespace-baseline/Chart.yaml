@@ -1,0 +1,5 @@
+apiVersion: v2
+name: namespace-baseline
+version: 0.1.0
+description: Platform-owned identity and configuration for the PREL37 managed namespace.
+type: application

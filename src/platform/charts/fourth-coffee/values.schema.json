@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["image", "extraEnvFrom"],
+  "properties": {
+    "image": {
+      "type": "object",
+      "required": ["registry", "repository", "tag"],
+      "properties": {
+        "registry": {"const": "ghcr.io/pauldotyu"},
+        "repository": {"const": "fourth-coffee"},
+        "tag": {"enum": ["0.1.0-12.1.ge412f12", "latest"]},
+        "digest": {"const": "sha256:ece6b82e6411d47a17c48e6b550eac0571e19818ecf5b1fe1d4ef0b2113fa043"}
+      }
+    },
+    "workloadIdentity": {
+      "type": "object",
+      "properties": {
+        "serviceAccounts": {
+          "description": "Platform-owned: one ServiceAccount per model-calling component. fourth-coffee-mcp gets none.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "concierge": {"const": "concierge"},
+            "ops-agent": {"const": "ops-agent"}
+          }
+        },
+        "enabled": {"const": true},
+        "serviceAccount": {
+          "description": "Legacy shared ServiceAccount from earlier app-deploy files. Accepted and ignored.",
+          "type": "object",
+          "properties": {
+            "create": {"const": false},
+            "name": {"const": "agent"}
+          }
+        }
+      }
+    },
+    "extraEnvFrom": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["configMapRef"],
+        "additionalProperties": false,
+        "properties": {
+          "configMapRef": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {"name": {"const": "platform-context"}}
+          }
+        }
+      }
+    }
+  }
+}
