@@ -24,6 +24,25 @@ success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"; }
 warn() { printf "${YELLOW}[WARN]${NC} %s\n" "$1"; }
 error() { printf "${RED}[ERROR]${NC} %s\n" "$1" >&2; }
 
+validate_lab_paths() {
+  [[ "$LAB_ROOT" == /* ]] ||
+    { error "Use a dedicated absolute LAB_ROOT directory."; exit 1; }
+  LAB_SOURCE="$(cd "$LAB_SOURCE" && pwd -P)"
+  LAB_ROOT="$(realpath -m -- "$LAB_ROOT")"
+  [[ "$LAB_ROOT" != / && "$LAB_ROOT" != "$(cd "$HOME" && pwd -P)" && "$LAB_ROOT" != "$LAB_SOURCE" ]] ||
+    { error "Use a dedicated LAB_ROOT, not your home, filesystem root, or source directory."; exit 1; }
+  case "$LAB_ROOT/" in
+    "$LAB_SOURCE/"*) error "LAB_ROOT must not be inside the workshop source."; exit 1 ;;
+  esac
+  case "$LAB_SOURCE/" in
+    "$LAB_ROOT/"*)
+      [[ "$LAB_SOURCE" == "$LAB_ROOT/setup" && -f "$LAB_SOURCE/.lab-bundle" ]] ||
+        { error "Source inside LAB_ROOT is supported only for an extracted bundle at LAB_ROOT/setup."; exit 1; }
+      ;;
+  esac
+  export LAB_SOURCE LAB_ROOT
+}
+
 # --- 1. Tool Check ---
 check_tools() {
   log "Checking prerequisites..."
@@ -313,24 +332,45 @@ install_platform_software() {
 }
 
 # --- 7. Backstage ---
-setup_backstage() {
+prepare_backstage() {
   log "Installing Backstage (this takes a few minutes)..."
-  mkdir -p "$LAB_ROOT/runtime"
-  local rev
+  mkdir -p "$LAB_ROOT/config" "$LAB_ROOT/runtime"
+  if [ ! -f "$LAB_ROOT/config/artifact-lock.json" ]; then
+    cp "setup/artifact-lock.json" "$LAB_ROOT/config/artifact-lock.json"
+  fi
+  local rev node_major yarn_version source_file target_file
   rev=$(jq -er .backstage.sourceRevision "$LAB_ROOT/config/artifact-lock.json")
+  node_major=$(jq -er .backstage.nodeMajor "$LAB_ROOT/config/artifact-lock.json")
+  yarn_version=$(jq -er .backstage.yarn "$LAB_ROOT/config/artifact-lock.json")
+  [ "$(node -p 'process.versions.node.split(".")[0]')" = "$node_major" ] ||
+    { error "Backstage requires Node.js $node_major, as pinned in config/artifact-lock.json."; exit 1; }
   if [ ! -d "$LAB_ROOT/runtime/backstage" ]; then
     git clone https://github.com/pauldotyu/backstage.git "$LAB_ROOT/runtime/backstage"
     git -C "$LAB_ROOT/runtime/backstage" checkout --detach "$rev"
-    cp "src/backstage/App.tsx" "$LAB_ROOT/runtime/backstage/packages/app/src/App.tsx"
-    cp "src/backstage/index.ts" "$LAB_ROOT/runtime/backstage/packages/backend/src/index.ts"
   fi
   [ "$(git -C "$LAB_ROOT/runtime/backstage" rev-parse HEAD)" = "$rev" ] ||
     { error "Backstage at $LAB_ROOT/runtime/backstage is not at the pinned revision $rev."; exit 1; }
+  for source_file in App.tsx index.ts; do
+    case "$source_file" in
+      App.tsx) target_file="packages/app/src/App.tsx" ;;
+      index.ts) target_file="packages/backend/src/index.ts" ;;
+    esac
+    if ! cmp -s "src/backstage/$source_file" "$LAB_ROOT/runtime/backstage/$target_file"; then
+      git -C "$LAB_ROOT/runtime/backstage" diff --quiet HEAD -- "$target_file" ||
+        { error "$target_file has local Backstage changes. Preserve them before applying the lab override."; exit 1; }
+      cp "src/backstage/$source_file" "$LAB_ROOT/runtime/backstage/$target_file"
+    fi
+  done
   # Yarn writes this file only after a complete install, so an interrupted setup reinstalls on rerun.
   if [ ! -f "$LAB_ROOT/runtime/backstage/node_modules/.yarn-state.yml" ]; then
-    (cd "$LAB_ROOT/runtime/backstage" && node .yarn/releases/yarn-4.13.0.cjs install --immutable)
+    (cd "$LAB_ROOT/runtime/backstage" && node ".yarn/releases/yarn-$yarn_version.cjs" install --immutable)
   fi
-  
+  success "Backstage source and dependencies ready."
+}
+
+setup_backstage() {
+  prepare_backstage
+
   # Config
   # ${GITHUB_TOKEN} stays literal; setup/start-backstage.sh supplies it at runtime
   envsubst '${LAB_ROOT} ${PLATFORM_BROWSER_URL}' < "src/backstage/app-config.lab.yaml" > "$LAB_ROOT/runtime/backstage/app-config.local.yaml"

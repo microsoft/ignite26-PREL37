@@ -4,12 +4,13 @@ Finish this guide before starting Module 1. Setup builds the foundation a platfo
 
 Choose one preparation path, then complete the shared [Module 1 handoff](#finish-setup-and-open-module-1):
 
-- **Assigned Skillable VM:** use [Skillable lab setup](#skillable-lab-setup). Azure is already provisioned; run `make machine-setup`, not `make setup`.
+- **Assigned Skillable VM:** use [Skillable lab setup](#skillable-lab-setup). Run `make setup` from the pre-staged bundle, or `make machine-setup` from an ordinary Git checkout. Neither path provisions Azure.
+- **Preparing the Skillable image:** [build and pre-stage the lab bundle](#build-and-pre-stage-the-lab-bundle) before taking the VM snapshot.
 - **New Azure environment, automated:** use [fast-track setup](#fast-track-setup).
 - **Step-by-step control:** use [manual setup](#manual-setup). It covers the same preparation as `setup/fast-track.sh`, with a separate branch for an already provisioned Skillable foundation.
 - **Environment already prepared:** use [resume a prepared environment](#resume-a-prepared-environment).
 
-All `make` commands run from the source checkout, normally `$HOME/repos/ignite26-PREL37`. Your generated learner workspace is a different directory, `$HOME/prel37`. Do not clone the source into the learner workspace or run both preparation paths on the same instance.
+All `make` commands run from the source directory: `$HOME/prel37/setup` for the bundle, or normally `$HOME/repos/ignite26-PREL37` for a Git checkout. The generated learner workspace is `$HOME/prel37`. Only the marked bundle supports source inside that workspace, specifically at `LAB_ROOT/setup`. Do not run the Azure-provisioning path on an assigned Skillable instance.
 
 ## Application artifact prerequisite
 
@@ -27,7 +28,45 @@ For later releases, update the image tag/digest, source revision, upstream chart
 
 ## Skillable lab setup
 
-**Use `make machine-setup`, not `make setup`, in the assigned lab VM.** Organizers have already run the Terraform in `infra/` from `C:\terraform`. You prepare the Linux workspace, GitHub repositories, platform packages, and local tools without provisioning Azure infrastructure again.
+**Use `make setup` from the pre-staged bundle in the assigned lab VM.** When `/mnt/c/terraform/terraform.tfstate` exists, it uses the same non-provisioning flow as `make machine-setup`. Without state, it prepares Backstage for the VM snapshot and stops; it does not create Azure resources or complete the learner lab.
+
+In an ordinary Git checkout, `make setup` still provisions Azure. Use `make machine-setup` there for an assigned Skillable environment.
+
+### Build and pre-stage the lab bundle
+
+On the authoring machine, commit the files you want to distribute and run:
+
+```bash
+make lab-bundle
+```
+
+This requires `git`, `tar`, and `zip`, and a clean Git worktree. It creates a unique `/tmp/prel37-lab-bundle.XXXXXX/` directory containing both `setup/` and `prel37-lab-bundle.zip`. The ZIP contains the committed repository files, including documentation, manifests, Terraform source, scripts, and Backstage overrides. A `.lab-bundle` marker records the source commit and selects the safe bundle setup behavior. Keep that marker.
+
+The archive does not include Git history, ignored or untracked files, local Terraform state, generated credentials, or an existing Backstage runtime. It does not clone anything or install dependencies on the authoring machine. Never commit credentials or state to the source repository. Distribute the ZIP through the approved lab-upload channel while the repository is private.
+
+Upload the ZIP to the VM. Open WSL as the same Linux user who will run the lab, ensure the tools listed under [organizer preparation](#organizer-preparation) and `unzip` are installed, and extract it onto the Linux filesystem:
+
+```bash
+read -r -p "ZIP path as visible from WSL (for example, /mnt/c/Users/.../Downloads/prel37-lab-bundle.zip): " bundle_zip
+test ! -e "$HOME/prel37/setup" && unzip "$bundle_zip" -d "$HOME/prel37"
+cd "$HOME/prel37/setup"
+export LAB_ROOT="$HOME/prel37"
+make setup
+```
+
+For the reusable image, run this **before** Skillable places state at `C:\terraform\terraform.tfstate`. With no state file, setup:
+
+1. Checks that the WSL tools are available, without Azure or GitHub account prompts.
+2. Clones the pinned sample Backstage repository into `$LAB_ROOT/runtime/backstage`, applies the lab overrides, and installs dependencies with the pinned Yarn version and `--immutable`.
+3. Stops without reading Terraform outputs, connecting to clusters, creating learner repositories, or rendering learner-specific Backstage configuration.
+
+The Backstage clone and dependency download happen once during image preparation, so this step still needs network access and access to that repository. Proctors do not need access to the private workshop repository. Repeating preparation reuses the pinned clone and installed dependencies. Backstage starts with `yarn start` during delivery and compiles locally; a separate production build is not required.
+
+Before taking the snapshot, confirm preparation finished successfully. Remove any preparation account sign-ins, tokens, browser sessions, and credential-manager entries from the VM. Snapshot before learner-specific configuration, not after a rehearsal with real accounts. Setup refuses the image-preparation path when known learner configuration or work already exists; it does not erase it. It does not detect or sanitize credentials elsewhere on the VM.
+
+At delivery, Skillable supplies the bootstrap state and assigned accounts. Learners run `make setup` again from the same directory. The existing Backstage clone and dependencies are reused. An empty or invalid state file is an error, not permission to provision Azure or silently skip learner configuration. For a different state location, set `LAB_TERRAFORM_SOURCE=/absolute/path/to/terraform`.
+
+`make machine-setup` remains available as an explicit learner setup command and always requires state. `make reset` and `make teardown` are disabled in the bundle to protect its nested source directory and Skillable-owned resources. Do not replace an initialized bundle with a newer ZIP over learner work; prepare and rehearse a fresh image instead.
 
 ### Organizer preparation
 
@@ -35,8 +74,8 @@ Before learners arrive:
 
 - Run the current `infra/main.tf` as the authorized bootstrap identity against the assigned resource group and learner identity, including the constrained telemetry-publisher delegation. Finish a successful apply in the default local Terraform workspace at `C:\terraform`, leaving `C:\terraform\terraform.tfstate` with the current `lab` output. Learners do not need the bootstrap identity or its permissions.
 - Prepare Ubuntu on WSL with Linux versions of `make`, `git`, `gh`, `az`, `terraform` (>=1.10, <2.0), `kubectl`, `kubelogin`, `node` (v24), `jq`, and `envsubst`. Install the Azure CLI `log-analytics` extension in WSL for Module 3. Prepare VS Code with WSL support. Windows executables alone do not satisfy this tool setup.
-- Ensure WSL can reach Azure sign-in, both cluster APIs, GitHub, the package registries, and the Backstage dependency registry. Terraform installs Crossplane and the Argo CD extension; `make machine-setup` installs the supplied Crossplane provider/functions and shared Gateway, not another copy of those Terraform-owned controllers.
-- Supply the assigned Azure and GitHub accounts. The GitHub account needs permission to create the two private repositories and fine-grained tokens described below. Decide whether this source repository is pre-cloned in WSL or learners clone it at the start.
+- Ensure WSL can reach Azure sign-in, both cluster APIs, GitHub, and the package registries. Backstage dependency downloads are needed during image preparation, not during delivery after a successful pre-stage. Terraform installs Crossplane and the Argo CD extension; learner setup installs the supplied Crossplane provider/functions and shared Gateway, not another copy of those Terraform-owned controllers.
+- Pre-stage the bundle and Backstage dependencies before snapshotting. Supply the assigned Azure and GitHub accounts at delivery. The GitHub account needs permission to create the two private learner repositories and fine-grained tokens described below. These learner-repository operations still use GitHub; the bundle removes the upstream workshop clone, not all network access.
 
 The Windows directory must contain the **bootstrap** state, not the controller-owned managed-namespace state. Keep state and credentials out of Git. Skillable owns the Azure lifecycle and teardown; learners should not run `make teardown`.
 
@@ -48,20 +87,15 @@ Open the Ubuntu profile in Windows Terminal, or run this from PowerShell:
 wsl
 ```
 
-Run all remaining commands in the WSL shell. If the source repository is not pre-staged, clone it once:
+Run all remaining commands in the WSL shell. Enter the pre-staged bundle and choose the workspace:
 
 ```bash
-mkdir -p "$HOME/repos"
-git clone https://github.com/pauldotyu/ignite26-PREL37.git "$HOME/repos/ignite26-PREL37"
-```
-
-Then enter the existing clone and choose the workspace:
-
-```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$HOME/prel37/setup"
 export LAB_SOURCE="$PWD"
 export LAB_ROOT="$HOME/prel37"
 ```
+
+If this directory is missing, ask the organizer for the bundle. Do not depend on access to the private upstream repository. For a rehearsal using an existing Git checkout instead, enter that checkout and use `make machine-setup` in place of `make setup` below.
 
 ### Check the assigned accounts in WSL
 
@@ -82,12 +116,12 @@ az account set --subscription "$assigned_subscription"
 gh auth login --hostname github.com --git-protocol https
 ```
 
-Do not use personal Azure credentials. `make machine-setup` checks that the active tenant and subscription match the provisioned outputs and stops if they do not.
+Do not use personal Azure credentials. Learner setup checks that the active tenant and subscription match the provisioned outputs and stops if they do not.
 
 ### Prepare the learner workspace
 
 ```bash
-make machine-setup
+make setup
 source "$LAB_ROOT/config/lab.env"
 ```
 
@@ -98,7 +132,7 @@ The script:
 1. Reads `/mnt/c/terraform/terraform.tfstate` through a private temporary snapshot and exports `lab` to `config/lab.json`. It leaves `C:\terraform` untouched and removes the snapshot. It does **not** run `terraform init`, `apply`, or `refresh`, copy Windows provider binaries, create a resource group, or change Azure role assignments.
 2. Refreshes both cluster contexts with `setup/bootstrap.sh`, creates or reuses the private `prel37-<lab-id>-platform` and `prel37-<lab-id>-app-deploy` repositories, and prepares the worksheet, exercises, queries, evidence, and VS Code workspace.
 3. Renders `config/environment.yaml` and installs the supplied provider/functions and shared Gateway, waiting for their ready conditions. It does **not** apply provider configuration, delivery permissions, EnvironmentConfig, or root Applications. Those are Module 2 work.
-4. Prepares the pinned local Backstage runtime. GitHub setup choices are saved in `config/setup.env` under `LAB_ROOT`, not in the source clone.
+4. Reuses the pinned local Backstage runtime and dependencies prepared in the image, then renders learner-specific configuration. If preparation was omitted, this step downloads the runtime and dependencies. GitHub setup choices are saved in `config/setup.env` under `LAB_ROOT`, not in the source directory.
 
 There is no need to copy the entire Windows Terraform directory into `$HOME` or run `terraform init` in WSL. Reading saved outputs needs neither provider installation nor the bootstrap Azure identity. For a rehearsal with state in another location, use `LAB_TERRAFORM_SOURCE=/absolute/path/to/terraform make machine-setup`.
 
@@ -108,7 +142,7 @@ The application name comes from the saved `config/lab.env`, or defaults to `four
 
 ### Apply GitHub tokens
 
-After `make machine-setup` succeeds and you source `lab.env`, run **`make auth` next**.
+After learner setup succeeds and you source `lab.env`, run **`make auth` next**.
 
 Create two fine-grained PATs scoped to your two private lab repositories: a read token with **Contents: Read-only**, and a Backstage token with **Contents: Read and write**, **Pull requests: Read and write**, and **Commit statuses: Read-only**. See [GitHub tokens](#github-tokens) for the resource-owner settings. In your current source-repository terminal, run:
 
@@ -123,7 +157,7 @@ Enter both tokens when prompted. Wait for the helper to finish applying the cont
 In a **second WSL terminal**, start Backstage and leave it running:
 
 ```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$HOME/prel37/setup"
 source "$HOME/prel37/config/lab.env"
 make backstage
 ```
@@ -131,7 +165,7 @@ make backstage
 In a **third WSL terminal**, start the Argo CD tunnel and leave it running:
 
 ```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$HOME/prel37/setup"
 source "$HOME/prel37/config/lab.env"
 make argocd
 ```
@@ -171,8 +205,10 @@ Then complete [finish setup and open Module 1](#finish-setup-and-open-module-1).
 
 Use this after preparation has completed. Do not rerun Terraform, copy templates over learner changes, or reset the workspace just to refresh access.
 
+In a fresh terminal, set `LAB_SOURCE` to `$HOME/prel37/setup` for a bundle or to your original Git checkout before running these commands.
+
 ```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$LAB_SOURCE"
 make connect
 source "$HOME/prel37/config/lab.env"
 ```

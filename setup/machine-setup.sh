@@ -66,11 +66,7 @@ collect_lab_inputs() {
 }
 
 main() {
-  [[ "$LAB_ROOT" == /* && "$LAB_ROOT" != / && "$LAB_ROOT" != "$HOME" && "$LAB_ROOT" != "$LAB_SOURCE" ]] ||
-    { error "Use a dedicated absolute LAB_ROOT directory outside the workshop source."; exit 1; }
-  case "$LAB_ROOT/" in
-    "$LAB_SOURCE/"*) error "LAB_ROOT must be outside the workshop source."; exit 1 ;;
-  esac
+  validate_lab_paths
   cd "$LAB_SOURCE"
   check_tools
   mkdir -p "$LAB_ROOT/config" "$LAB_ROOT/runtime" "$LAB_ROOT/.state"
