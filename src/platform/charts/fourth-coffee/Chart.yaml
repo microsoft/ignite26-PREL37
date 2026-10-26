@@ -1,0 +1,11 @@
+apiVersion: v1
+name: fourth-coffee
+description: PREL37 delivery adapter for the pinned, published Fourth Coffee application.
+type: application
+version: 0.1.0+prel37.1
+appVersion: 0.1.0-12.1.ge412f12
+annotations:
+  upstream-source: https://github.com/pauldotyu/fourth-coffee/tree/969ca1acae851d0ef3cb60619d5e0d6e90523fda
+  upstream-chart: oci://ghcr.io/pauldotyu/charts/fourth-coffee
+  upstream-chart-version: 0.1.0-12.1.ge412f12
+  upstream-chart-digest: sha256:3eeb4e0eef43cff626bfd03309d3953532caa5a90a642d5d4f4b094384c6a775

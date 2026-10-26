@@ -1,0 +1,13 @@
+apiVersion: platform.prel37.example/v1alpha1
+kind: AppEnvironment
+metadata:
+  name: beans-dev
+spec:
+  # Names the managed namespace. Change team, application, owner, and metadata.name together for another team.
+  team: beans
+  application: fourth-coffee
+  owner: group:default/beans
+  costCenter: CC-1042
+  # Set to your Entra object ID: az ad signed-in-user show --query id -o tsv
+  requesterObjectId: "00000000-0000-0000-0000-000000000000"
+  namespaceClass: ai-dev

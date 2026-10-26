@@ -1,0 +1,44 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform
+  description: Owns the shared self-service templates. Catalog metadata only, not an Entra security group.
+spec:
+  type: team
+  children: []
+---
+# One Group per application team. A Component's name must match its AppEnvironment application.
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: beans
+  description: Catalog ownership for the isolated lab, not an Entra security group.
+spec:
+  type: team
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: learner
+spec:
+  memberOf: [beans]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: fourth-coffee
+  description: Fourth Coffee, delivered into the beans managed namespace.
+  links:
+    - url: http://beans.localhost:8080
+      title: Application
+    - url: https://localhost:8443/applications/argocd/fourth-coffee
+      title: Argo CD delivery
+    - url: "${APP_BROWSER_URL}"
+      title: Application configuration
+    - url: https://github.com/pauldotyu/fourth-coffee/tree/969ca1acae851d0ef3cb60619d5e0d6e90523fda
+      title: Application source
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/beans

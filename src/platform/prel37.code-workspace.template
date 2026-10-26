@@ -1,0 +1,22 @@
+{
+  "folders": [
+    {
+      "name": "📁 Lab Root",
+      "path": "${LAB_ROOT}"
+    },
+    {
+      "name": "🏗️ Platform",
+      "path": "${LAB_ROOT}/platform"
+    },
+    {
+      "name": "🚀 App-Deploy",
+      "path": "${LAB_ROOT}/app-deploy"
+    }
+  ],
+  "settings": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "files.autoSave": "off",
+    "editor.formatOnSave": false
+  }
+}

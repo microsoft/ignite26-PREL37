@@ -1,0 +1,19 @@
+apiVersion: apiextensions.crossplane.io/v1beta1
+kind: EnvironmentConfig
+metadata:
+  name: prel37
+data:
+  platformRepo: "${PLATFORM_REPO_URL}"
+  appRepo: "${APP_DEPLOY_REPO_URL}"
+  moduleRevision: "${MODULE_REVISION}"
+  clusterId: "${WORKLOAD_CLUSTER_ID}"
+  location: "${AZURE_LOCATION}"
+  labId: "${LAB_ID}"
+  resourceGroupName: "${AKS_RESOURCE_GROUP}"
+  workloadOidcIssuer: "${WORKLOAD_OIDC_ISSUER}"
+  modelResourceId: "${MODEL_RESOURCE_ID}"
+  logAnalyticsWorkspaceId: "${LOG_ANALYTICS_WORKSPACE_ID}"
+  azureMonitorWorkspaceId: "${AZURE_MONITOR_WORKSPACE_ID}"
+  clusterOperatorObjectIds: "${CLUSTER_OPERATOR_OBJECT_IDS}"
+  modelEndpoint: "${MODEL_ENDPOINT}"
+  modelDeployment: "${MODEL_DEPLOYMENT}"

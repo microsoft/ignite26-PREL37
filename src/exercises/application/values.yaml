@@ -1,0 +1,6 @@
+image:
+  tag: "0.1.0-12.1.ge412f12"
+extraEnvFrom:
+  - configMapRef:
+      # status.binding.configMapName on your AppEnvironment
+      name: ""

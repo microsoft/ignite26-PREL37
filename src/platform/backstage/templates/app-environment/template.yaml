@@ -1,0 +1,111 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: app-environment
+  title: AI application environment
+  description: Request a managed namespace with workload identity, model access, and telemetry, then deliver the approved application into it through GitOps.
+spec:
+  owner: group:default/platform
+  type: service
+  parameters:
+    - title: Environment
+      required: [team, application, owner, costCenter]
+      properties:
+        team:
+          title: Environment namespace
+          type: string
+          description: Names the managed namespace, the environment's Azure resources, and its http://<namespace>.localhost:8080 address. Must not already exist.
+          pattern: "^[a-z]([a-z0-9-]{0,18}[a-z0-9])?$"
+          ui:help: For example beans-prod. Lowercase letters, numbers, and hyphens, up to 20 characters.
+        application:
+          title: Application name
+          type: string
+          description: Names the Argo CD Application, the catalog component, and the apps/<name> folder in the app-deploy repository. Must be unique.
+          pattern: "^[a-z]([a-z0-9-]{0,38}[a-z0-9])?$"
+          ui:help: For example fourth-coffee-prod.
+        owner:
+          title: Owning team
+          type: string
+          description: The Backstage group that owns the application.
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group
+        costCenter:
+          title: Cost center
+          type: string
+          description: Required by the environment contract. Tags every Azure resource and the namespace.
+          pattern: "^CC-[0-9]{4}$"
+          ui:help: For example CC-1042.
+    - title: Access and resources
+      required: [profile]
+      properties:
+        requesterObjectId:
+          title: Your Entra object ID
+          type: string
+          description: Gets AKS desktop access to the namespace and read access to its telemetry. Run az ad signed-in-user show --query id -o tsv to find it.
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        profile:
+          title: Resource profile
+          type: string
+          description: The platform-approved CPU and memory for the application's components.
+          enum: [small, standard]
+          default: small
+  steps:
+    - id: request
+      name: Write the environment request
+      action: fetch:template
+      input:
+        url: ./skeleton/platform
+        targetPath: platform
+        values:
+          team: ${{ parameters.team }}
+          application: ${{ parameters.application }}
+          owner: ${{ parameters.owner }}
+          costCenter: ${{ parameters.costCenter }}
+          requesterObjectId: ${{ parameters.requesterObjectId }}
+          configUrl: "${APP_BROWSER_URL}/tree/main/apps/${{ parameters.application }}"
+    - id: config
+      name: Write the application configuration
+      action: fetch:template
+      input:
+        url: ./skeleton/app-deploy
+        targetPath: app-deploy
+        values:
+          application: ${{ parameters.application }}
+    - id: profile
+      name: Fetch the approved profile
+      action: fetch:plain:file
+      input:
+        url: "${PLATFORM_BROWSER_URL}/blob/main/profiles/workload-${{ parameters.profile }}.yaml"
+        targetPath: "app-deploy/apps/${{ parameters.application }}/profile.yaml"
+    - id: publish-config
+      name: Propose the application configuration
+      action: publish:github:pull-request
+      input:
+        repoUrl: "${APP_REPO_SELECTOR}"
+        sourcePath: app-deploy
+        branchName: "backstage/${{ parameters.application }}-config"
+        targetBranchName: main
+        title: "Add delivery configuration for ${{ parameters.application }}"
+        description: "Adds values.yaml and the approved ${{ parameters.profile }} profile under apps/${{ parameters.application }}. Nothing deploys until the platform creates this environment's Argo CD Application. Merge this one first."
+    - id: publish-request
+      name: Request the environment
+      action: publish:github:pull-request
+      input:
+        repoUrl: "${PLATFORM_REPO_SELECTOR}"
+        sourcePath: platform
+        branchName: "backstage/${{ parameters.team }}-environment"
+        targetBranchName: main
+        title: "Request the ${{ parameters.team }} environment for ${{ parameters.application }}"
+        description: "Adds an AppEnvironment request and a catalog entry. Merging is the platform's approval: the controllers create the namespace, identity, model access, telemetry, and delivery wiring."
+  output:
+    links:
+      - title: 1. Review the configuration pull request
+        url: ${{ steps['publish-config'].output.remoteUrl }}
+      - title: 2. Review the environment request pull request
+        url: ${{ steps['publish-request'].output.remoteUrl }}
+      - title: Follow application delivery in Argo CD
+        url: "https://localhost:8443/applications/argocd/${{ parameters.application }}"
+      - title: Open the application
+        url: "http://${{ parameters.team }}.localhost:8080"

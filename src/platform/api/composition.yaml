@@ -1,0 +1,264 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: app-environment
+spec:
+  compositeTypeRef:
+    apiVersion: platform.prel37.example/v1alpha1
+    kind: AppEnvironment
+  mode: Pipeline
+  pipeline:
+    - step: environment
+      functionRef:
+        name: function-environment-configs
+      input:
+        apiVersion: environmentconfigs.fn.crossplane.io/v1beta1
+        kind: Input
+        spec:
+          environmentConfigs:
+            - type: Reference
+              ref:
+                name: prel37
+    - step: compose
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        options: ["missingkey=error"]
+        inline:
+          template: |
+            {{- $xr := .observed.composite.resource }}
+            {{- $env := index .context "apiextensions.crossplane.io/environment" }}
+            {{- $ws := getComposedResource . "workspace" }}
+            {{- $baseline := getComposedResource . "baseline" }}
+            {{- $delivery := getComposedResource . "delivery" }}
+            {{- $envName := $xr.metadata.name }}
+            {{- $team := $xr.spec.team }}
+            {{- $appName := $xr.spec.application }}
+            {{- $chart := dig "spec" "chart" "fourth-coffee" $xr }}
+            {{- /* Model-calling components of each approved chart. Each gets its own ServiceAccount and Azure identity; other components get none. */}}
+            {{- $agents := index (dict "fourth-coffee" (list "concierge" "ops-agent")) $chart }}
+            {{- if not $agents }}{{ fail (printf "Unapproved delivery chart: %s" $chart) }}{{ end }}
+            {{- $appHost := printf "%s.localhost" $team }}
+            {{- $outputs := dig "status" "atProvider" "outputs" (dict) $ws }}
+            {{- $clientIds := dig "agent_client_ids" (dict) $outputs }}
+            {{- $agentClientIds := dict }}
+            {{- $identitiesReady := true }}
+            {{- range $agents }}
+              {{- $id := dig . "" $clientIds }}
+              {{- if eq $id "" }}{{ $identitiesReady = false }}{{ end }}
+              {{- $_ := set $agentClientIds . $id }}
+            {{- end }}
+            {{- $workspaceReady := false }}
+            {{- $workspaceSynced := false }}
+            {{- range (dig "status" "conditions" (list) $ws) }}
+              {{- if and (eq .type "Ready") (eq .status "True") }}{{ $workspaceReady = true }}{{ end }}
+              {{- if and (eq .type "Synced") (eq .status "True") }}{{ $workspaceSynced = true }}{{ end }}
+            {{- end }}
+            {{- $otlp := dig "otlp" (dict) $outputs }}
+            {{- $telemetryReady := and (ne (dig "traces_endpoint" "" $otlp) "") (ne (dig "logs_endpoint" "" $otlp) "") (ne (dig "metrics_endpoint" "" $otlp) "") (ne (dig "application_id" "" $otlp) "") }}
+            {{- $provisioned := and $workspaceReady $workspaceSynced (ne (dig "namespace_id" "" $outputs) "") $identitiesReady (ne (dig "appinsights_resource_id" "" $outputs) "") $telemetryReady }}
+            {{- $baselineValues := dig "spec" "source" "helm" "valuesObject" (dict) $baseline }}
+            {{- if $provisioned }}
+              {{- $baselineValues = dict "agents" $agentClientIds "modelEndpoint" $env.modelEndpoint "modelDeployment" $env.modelDeployment "otlp" (dict "tracesEndpoint" $otlp.traces_endpoint "logsEndpoint" $otlp.logs_endpoint "metricsEndpoint" $otlp.metrics_endpoint "applicationId" $otlp.application_id) }}
+            {{- end }}
+            {{- $baselineReady := and $provisioned (eq (dig "status" "sync" "status" "" $baseline) "Synced") (eq (dig "status" "sync" "revision" "" $baseline) $env.moduleRevision) (eq (dig "status" "health" "status" "" $baseline) "Healthy") (deepEqual (dig "status" "sync" "comparedTo" "source" "helm" "valuesObject" (dict) $baseline) $baselineValues) }}
+            ---
+            apiVersion: opentofu.m.upbound.io/v1beta1
+            kind: Workspace
+            metadata:
+              name: {{ $envName }}
+              namespace: crossplane-system
+              annotations:
+                {{ setResourceNameAnnotation "workspace" }}
+            spec:
+              forProvider:
+                source: Remote
+                module: {{ printf "git::%s//opentofu/managed-namespace?ref=%s" $env.platformRepo $env.moduleRevision | quote }}
+                remotePullPolicy: IfNotPresent
+                enableTofuCLILogging: false
+                varmap:
+                  cluster_id: {{ $env.clusterId | quote }}
+                  location: {{ $env.location | quote }}
+                  lab_id: {{ $env.labId | quote }}
+                  resource_group_name: {{ $env.resourceGroupName | quote }}
+                  workload_oidc_issuer: {{ $env.workloadOidcIssuer | quote }}
+                  model_resource_id: {{ $env.modelResourceId | quote }}
+                  log_analytics_workspace_id: {{ $env.logAnalyticsWorkspaceId | quote }}
+                  azure_monitor_workspace_id: {{ $env.azureMonitorWorkspaceId | quote }}
+                  team: {{ $team | quote }}
+                  application: {{ $appName | quote }}
+                  agents: {{ $agents | toJson }}
+                  owner: {{ $xr.spec.owner | quote }}
+                  cost_center: {{ $xr.spec.costCenter | quote }}
+                  requester_object_id: {{ dig "spec" "requesterObjectId" "" $xr | quote }}
+                  requester_principal_type: {{ dig "spec" "requesterPrincipalType" "User" $xr | quote }}
+                  cluster_operator_object_ids: {{ dig "clusterOperatorObjectIds" "" $env | quote }}
+              providerConfigRef:
+                kind: ClusterProviderConfig
+                name: prel37
+            ---
+            apiVersion: argoproj.io/v1alpha1
+            kind: AppProject
+            metadata:
+              name: {{ $envName }}
+              namespace: argocd
+              annotations:
+                {{ setResourceNameAnnotation "project" }}
+                gotemplating.fn.crossplane.io/ready: {{ ternary "True" "False" $provisioned | quote }}
+              finalizers: [resources-finalizer.argocd.argoproj.io]
+            spec:
+              sourceRepos:
+                - {{ $env.platformRepo | quote }}
+                - {{ $env.appRepo | quote }}
+              destinations:
+                - name: prel37-workload
+                  namespace: {{ $team }}
+              clusterResourceBlacklist:
+                - group: "*"
+                  kind: "*"
+              namespaceResourceWhitelist:
+                - group: apps
+                  kind: Deployment
+                - group: ""
+                  kind: Service
+                - group: ""
+                  kind: ConfigMap
+                - group: ""
+                  kind: Secret
+                - group: gateway.networking.k8s.io
+                  kind: HTTPRoute
+            ---
+            # Platform-owned baseline boundary, scoped to this environment's namespace only.
+            apiVersion: argoproj.io/v1alpha1
+            kind: AppProject
+            metadata:
+              name: {{ printf "%s-baseline" $envName }}
+              namespace: argocd
+              annotations:
+                {{ setResourceNameAnnotation "baseline-project" }}
+                gotemplating.fn.crossplane.io/ready: "True"
+              finalizers: [resources-finalizer.argocd.argoproj.io]
+            spec:
+              sourceRepos:
+                - {{ $env.platformRepo | quote }}
+              destinations:
+                - name: prel37-workload
+                  namespace: {{ $team }}
+              clusterResourceBlacklist:
+                - group: "*"
+                  kind: "*"
+              namespaceResourceWhitelist:
+                - group: ""
+                  kind: ServiceAccount
+                - group: ""
+                  kind: ConfigMap
+                - group: networking.k8s.io
+                  kind: NetworkPolicy
+            {{- if or $provisioned $baseline }}
+            ---
+            apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            metadata:
+              name: {{ printf "%s-baseline" $envName }}
+              namespace: argocd
+              annotations:
+                {{ setResourceNameAnnotation "baseline" }}
+                gotemplating.fn.crossplane.io/ready: {{ ternary "True" "False" $baselineReady | quote }}
+              finalizers: [resources-finalizer.argocd.argoproj.io]
+            spec:
+              project: {{ printf "%s-baseline" $envName }}
+              source:
+                repoURL: {{ $env.platformRepo | quote }}
+                targetRevision: {{ $env.moduleRevision | quote }}
+                path: charts/namespace-baseline
+                helm:
+                  valuesObject:
+                    {{- $baselineValues | toYaml | nindent 20 }}
+              destination:
+                name: prel37-workload
+                namespace: {{ $team }}
+              syncPolicy:
+                automated:
+                  prune: true
+                  selfHeal: true
+                retry:
+                  limit: 10
+                  backoff:
+                    duration: 10s
+                    factor: 2
+                    maxDuration: 2m
+            {{- end }}
+            {{- if or $baselineReady $delivery }}
+            ---
+            # Delivery wiring is platform-owned. The application team only commits
+            # values.yaml and profile.yaml under apps/<application>/ in the app-deploy repo.
+            apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            metadata:
+              name: {{ $appName }}
+              namespace: argocd
+              annotations:
+                {{ setResourceNameAnnotation "delivery" }}
+                gotemplating.fn.crossplane.io/ready: "True"
+              finalizers: [resources-finalizer.argocd.argoproj.io]
+            spec:
+              project: {{ $envName }}
+              sources:
+                - repoURL: {{ $env.platformRepo | quote }}
+                  targetRevision: {{ $env.moduleRevision | quote }}
+                  path: {{ printf "charts/%s" $chart | quote }}
+                  helm:
+                    valueFiles:
+                      - {{ printf "$app/apps/%s/values.yaml" $appName | quote }}
+                      - {{ printf "$app/apps/%s/profile.yaml" $appName | quote }}
+                    # Parameters override the app-deploy value files, so the team's route host and
+                    # per-agent ServiceAccounts stay platform-owned.
+                    parameters:
+                      - name: route.hostname
+                        value: {{ $appHost | quote }}
+                      {{- range $agents }}
+                      - name: {{ printf "workloadIdentity.serviceAccounts.%s" . | quote }}
+                        value: {{ . | quote }}
+                      {{- end }}
+                - repoURL: {{ $env.appRepo | quote }}
+                  targetRevision: main
+                  ref: app
+              destination:
+                name: prel37-workload
+                namespace: {{ $team }}
+              syncPolicy:
+                automated:
+                  prune: true
+                  selfHeal: true
+                retry:
+                  limit: 5
+                  backoff:
+                    duration: 10s
+                    factor: 2
+                    maxDuration: 2m
+            {{- end }}
+            ---
+            apiVersion: platform.prel37.example/v1alpha1
+            kind: AppEnvironment
+            metadata:
+              name: {{ $xr.metadata.name }}
+            status:
+              namespaceId: {{ dig "namespace_id" "" $outputs | quote }}
+              appInsightsResourceId: {{ dig "appinsights_resource_id" "" $outputs | quote }}
+              baselineReady: {{ $baselineReady }}
+              {{- if $baselineReady }}
+              binding:
+                namespace: {{ $team | quote }}
+                serviceAccountNames: {{ $agents | toJson }}
+                configMapName: platform-context
+                argoProject: {{ $envName | quote }}
+                argoApplication: {{ $appName | quote }}
+                configPath: {{ printf "apps/%s" $appName | quote }}
+                appUrl: {{ printf "http://%s:8080" $appHost | quote }}
+              {{- end }}
+    - step: readiness
+      functionRef:
+        name: function-auto-ready

@@ -1,0 +1,36 @@
+# Module 2, step 2: delivery permissions and boundaries.
+# - ClusterRole: lets Crossplane create Argo CD Applications and AppProjects for each request.
+# - AppProject platform-system: limits what the platform root Applications may deliver.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: crossplane-prel37-delivery
+  labels:
+    rbac.crossplane.io/aggregate-to-crossplane: "true"
+rules:
+  - apiGroups: [argoproj.io]
+    resources: [applications, appprojects]
+    verbs: [get, list, watch, create, update, patch, delete]
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-system
+  namespace: argocd
+spec:
+  sourceRepos: ["${PLATFORM_REPO_URL}"]
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+  clusterResourceWhitelist:
+    - group: apiextensions.crossplane.io
+      kind: CompositeResourceDefinition
+    - group: apiextensions.crossplane.io
+      kind: Composition
+    - group: apiextensions.crossplane.io
+      kind: EnvironmentConfig
+    - group: platform.prel37.example
+      kind: AppEnvironment
+  namespaceResourceBlacklist:
+    - group: "*"
+      kind: "*"
