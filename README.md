@@ -45,7 +45,7 @@ Each step maps to a practice platform teams use every day: a written developer p
 There is one learner path. `docs/` and `instructions/` lead to the same guide.
 
 - **Attendees:** Start with the [workshop guide](docs/README.md), then follow its six modules, summary, and troubleshooting reference. These pages are the source of truth for learner steps. The [instructions entry point](instructions/README.md) links to this same guide.
-- **Environment organizers:** Use the [setup guide](setup/README.md) for cloud resources, identity, access, workspace preparation, controller/provider/function installation, shared gateway, native UI startup, and teardown. For Skillable, provision Terraform from `C:\terraform` before class, then use the [WSL learner setup](setup/README.md#skillable-lab-setup) to prepare the workspace with `make machine-setup`. Source assets live in `src/`. Stop at the installation checkpoint: render `environment.yaml`, but leave provider configuration, delivery permissions, applying EnvironmentConfig, and root watches to Module 2.
+- **Environment organizers:** Use the [setup guide](setup/README.md) for cloud resources, identity, access, workspace preparation, controller/provider/function installation, shared gateway, native UI startup, and teardown. For Skillable, [build and pre-stage the lab bundle](setup/README.md#build-and-pre-stage-the-lab-bundle) before snapshotting the VM. Provision Terraform from `C:\terraform` before class, then use the [WSL learner setup](setup/README.md#skillable-lab-setup) with `make setup` from the bundle (`make machine-setup` from a Git checkout). Source assets live in `src/`. Stop at the installation checkpoint: render `environment.yaml`, but leave provider configuration, delivery permissions, applying EnvironmentConfig, and root watches to Module 2.
 - **Speakers:** The [deck specification](instructor/PREL37-speaker-deck.md) describes slide content and delivery cues; the [design system](instructor/PREL37-design-system.md) describes visual rules. The presentation file is built on the official Ignite template from the deck specification and is maintained outside this repository.
 
 ### 🚀 Getting started
@@ -55,7 +55,7 @@ There is one learner path. `docs/` and `instructions/` lead to the same guide.
 If you're following along during a live session:
 
 1. Use the assigned Skillable Windows/WSL environment and lab accounts once organizers have prepared them. Do not use a personal subscription or credentials.
-2. Open WSL and complete the [Skillable lab setup](setup/README.md#skillable-lab-setup) with `make machine-setup`, GitHub tokens, and the local services. Then open Backstage at `http://localhost:3000`, Argo CD at `https://localhost:8443`, and the two private repositories. Start the application tunnel in Module 3, after deployment.
+2. Open WSL and complete the [Skillable lab setup](setup/README.md#skillable-lab-setup) with `make setup` from the pre-staged bundle, GitHub tokens, and the local services. Then open Backstage at `http://localhost:3000`, Argo CD at `https://localhost:8443`, and the two private repositories. Start the application tunnel in Module 3, after deployment.
 3. Follow the [workshop guide](docs/README.md) with the instructor, starting with [Module 1: define the developer promise](docs/1-developer-promise.md). The proposed four-hour schedule includes explanations, Module 2 wiring, demonstrations, discussion, catch-up time, and two breaks. Its timing remains pending rehearsal.
 
 #### On your own

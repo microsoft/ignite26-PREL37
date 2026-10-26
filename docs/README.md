@@ -74,7 +74,7 @@ You should recognize Kubernetes namespaces, Deployments, Services, and YAML file
 
 ### Choose your learning path
 
-**Guided session:** use the assigned lab VM, subscription, and accounts, not personal credentials. Organizers provision the Azure foundation before you arrive. Open WSL and follow the [Skillable lab setup](../setup/README.md#skillable-lab-setup), including `make machine-setup`, GitHub tokens, and the two local services, before opening the workspace below. The source repository may be pre-cloned or supplied as a clone step. Ask a proctor if something is missing or a checkpoint is blocked.
+**Guided session:** use the assigned lab VM, subscription, and accounts, not personal credentials. Organizers pre-stage the workshop bundle and Backstage dependencies and provision the Azure foundation before you arrive. Open WSL and follow the [Skillable lab setup](../setup/README.md#skillable-lab-setup), including `make setup` from `$HOME/prel37/setup`, GitHub tokens, and the two local services, before opening the workspace below. No upstream workshop clone is required. Ask a proctor if something is missing or a checkpoint is blocked.
 
 **Self-paced:** first complete the [setup guide](../setup/README.md) with your own Azure subscription and GitHub account, including starting Backstage and the Argo CD tunnel. Use Bash on Ubuntu, macOS, or Ubuntu on WSL. Wherever a module mentions an instructor demonstration, read it, then repeat the observation in your own environment.
 

@@ -100,20 +100,15 @@ Inside the virtual machine:
 wsl
 ```
 
-4. Run all remaining commands in the WSL shell. If the source repository is not pre-staged, clone it once:
+4. Run all remaining commands in the WSL shell. The workshop files and Backstage dependencies are already staged in the VM. Enter the bundle and choose the workspace:
 
 ```bash
-mkdir -p "$HOME/repos"
-git clone https://github.com/pauldotyu/ignite26-PREL37.git "$HOME/repos/ignite26-PREL37"
-```
-
-Then enter the existing clone and choose the workspace:
-
-```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$HOME/prel37/setup"
 export LAB_SOURCE="$PWD"
 export LAB_ROOT="$HOME/prel37"
 ```
+
+If this directory is missing, ask a proctor. You do not need to clone the upstream workshop repository.
 
 ### Check the assigned accounts in WSL
 
@@ -131,15 +126,17 @@ az account show --query '{subscription:id,tenant:tenantId}' -o table
 gh auth status
 ```
 
-Do not use personal Azure credentials. `make machine-setup` checks that the active tenant and subscription match the provisioned outputs and stops if they do not.
+Do not use personal Azure credentials. The bundle's `make setup` checks that the active tenant and subscription match the provisioned outputs and stops if they do not.
 
 ### Prepare the learner workspace
 
 Run this to get Terraform output, connect to the cluster, create repos, and get the apps up and running.
 
 ```bash
-make machine-setup
+make setup
 ```
+
+If setup reports that no Terraform state exists and prepares only the VM, stop and ask a proctor to check `C:\terraform\terraform.tfstate`. Do not proceed until the learner environment has been configured.
 
 - When prompted if your GitHub organization differs from your user account, type `n` so that repositories are created under your user account.
 - When prompted for your GitHub author name, enter the same name you use for your GitHub account.
@@ -175,7 +172,7 @@ Enter both tokens when prompted. Wait for the helper to finish applying the cont
 In a **second WSL terminal**, start Backstage and leave it running:
 
 ```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$HOME/prel37/setup"
 source "$HOME/prel37/config/lab.env"
 make backstage
 ```
@@ -183,7 +180,7 @@ make backstage
 In a **third WSL terminal**, start the Argo CD tunnel and leave it running:
 
 ```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$HOME/prel37/setup"
 source "$HOME/prel37/config/lab.env"
 make argocd
 ```
@@ -195,7 +192,7 @@ Confirm +++http://localhost:3000+++ displays Backstage and select **Enter** as t
 With both services running, return to your original terminal and open the prepared workspace:
 
 ```bash
-cd "$HOME/repos/ignite26-PREL37"
+cd "$HOME/prel37/setup"
 source "$HOME/prel37/config/lab.env"
 code "$LAB_ROOT/prel37.code-workspace"
 ```
