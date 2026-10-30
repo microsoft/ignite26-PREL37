@@ -1,30 +1,7 @@
-## Before you're done
-
-This repo has been created for your Microsoft Ignite 2026 session. Here's how to get it ready.
-**Easiest path: use the agent (recommended):**
-
-- Open GitHub Copilot Chat and say `help me initialize repo`. The agent will walk you through getting the README populated.
-- When you're ready to publish, say `help me finalize repo`. The agent will clean up unused folders, validate everything, and remove this "Before you're done" section and other extra stuff that attendees don't need to see.
-- Curious how it works? Read the [agent workflow](.github/AGENT-WORKFLOW.md).
-
-**Doing it manually?**
-Fill in the sections below yourself, then:
-
-- Delete any placeholder folders you don't need (`data/`, `infra/`, etc.)
-- Delete this "Before you're done" section
-- Delete `.github/agents/`, `.github/tests/`, `.github/copilot-instructions.md`, and `.github/AGENT-WORKFLOW.md`. These are template tooling, not part of your published repo.
-
-**Folder conventions:**
-
-- Attendee step-by-step guidance goes in `instructions/`. If you use MkDocs or a docs site instead, put it in `docs/` and link to it from this README.
-- Reference material and background reading go in `docs/`.
-- You can add a `.devcontainer/` folder if needed.
-
----
-
 <a name="start-building"></a>
 
 <p align="center"> <img src="img/banner-ignite-26.png" alt="Microsoft Ignite 2026" width="100%"/> </p> 
+
 # [Microsoft Ignite 2026](https://ignite.microsoft.com)
 
 ## 🔥 PREL37: Platform engineering on AKS: a paved road to AI apps
@@ -37,8 +14,6 @@ Platform engineering on AKS is about more than any single tool. This session cov
 
 Build a thin self-service platform capability on Azure Kubernetes Service (AKS) around a recurring developer task. Connect the installed platform's provisioning and delivery paths, complete a supported environment request, deploy the supplied Fourth Coffee AI application through GitOps, and expose approved changes through Backstage using platform-provided identity and configuration. Recover from a policy rejection and use telemetry, cost evidence, and observed friction to decide what the platform should improve next.
 Each step maps to a practice platform teams use every day: a written developer promise, a versioned environment API, GitOps delivery, a self-service portal, policy guardrails, and evidence-based iteration. You build a small version of each, so the pattern is concrete before you scale it.
-
-**Current status:** The attendee guide matches the implementation assets and preparation contract. Live end-to-end rehearsal is pending, including real startup, reconciliation, application telemetry, and four-hour timing. Telemetry authorization isolation is outside this lab's scope. Source files and setup scripts do not mean a VM image, personalized repositories, or live Azure resources have already been created or validated.
 
 ### How the materials fit together
 
@@ -106,8 +81,6 @@ Pick your next step based on your learning style:
 
 ### 🌟 Microsoft Learn MCP server
 
-<!-- Remove this section if the Microsoft Learn MCP Server is not relevant to the session. -->
-
 The Microsoft Learn Model Context Protocol (MCP) server gives your AI agent access to Microsoft's official documentation for grounded answers about the topics in this session. It is an optional learning aid, not a required lab dependency or an in-session installation task.
 
 **VS Code:** One-click install for optional follow-up:
@@ -117,12 +90,8 @@ For more information, visit the [Learn MCP Server repo](https://aka.ms/learnmcp)
 
 ### 👥 Content owners
 
-<!-- TODO: Add yourself as a content owner
-1. Change the src in the image tag to {your github url}.png
-2. Change INSERT NAME HERE to your name
-3. Change the github url in the final href to your url. -->
+<table> <tr> <td align="center"><a href="http://github.com/pauldotyu"> <img src="https://github.com/pauldotyu.png" width="100px;" alt="Paul Yu"/><br /> <sub><b>Paul Yu</b></sub></a><br /> <a href="https://github.com/pauldotyu" title="talk">📢</a> </td> <td align="center"><a href="http://github.com/bbenz"> <img src="https://github.com/bbenz.png" width="100px;" alt="Brian Benz"/><br /> <sub><b>Brian Benz</b></sub></a><br /> <a href="https://github.com/bbenz" title="talk">📢</a> </td> <td align="center"><a href="http://github.com/sjwaight"> <img src="https://github.com/sjwaight.png" width="100px;" alt="Simon Waight"/><br /> <sub><b>Simon Waight</b></sub></a><br /> <a href="https://github.com/sjwaight" title="talk">📢</a> </td> </tr></table>
 
-<table> <tr> <td align="center"><a href="http://github.com/pauldotyu"> <img src="https://github.com/pauldotyu.png" width="100px;" alt="Paul Yu"/><br /> <sub><b>Paul Yu</b></sub></a><br /> <a href="https://github.com/pauldotyu" title="talk">📢</a> </td> <td align="center"><a href="http://github.com/bbenz"> <img src="https://github.com/bbenz.png" width="100px;" alt="Brian Benz"/><br /> <sub><b>Brian Benz</b></sub></a><br /> <a href="https://github.com/bbenz" title="talk">📢</a> </td> <td align="center"><a href="http://github.com/sjwaight"> <img src="https://github.com/sjwaight.png" width="100px;" alt="Simon Waight"/><br /> <sub><b>Simon Waight</b></sub></a><br /> <a href="https://github.com/sjwaight" title="talk">📢</a> </td> </tr></table> 
 ### ⚖️ Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.

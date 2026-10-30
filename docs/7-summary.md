@@ -88,7 +88,7 @@ Do not turn these into extra in-session PRs or consume the protected breaks to c
 
 - [Troubleshooting and safe recovery](appendix-a-troubleshooting.md).
 - [Setup guide: bootstrap, native UI startup, and teardown](../setup/README.md).
-- [Accepted abstract and scope](README.md#session-context).
+- [Accepted abstract and scope](../README.md#session-description).
 - [AKS managed namespaces](https://learn.microsoft.com/azure/aks/concepts-managed-namespaces).
 - [Deployment Safeguards](https://learn.microsoft.com/azure/aks/deployment-safeguards).
 - [Granular RBAC for Azure Monitor Logs](https://learn.microsoft.com/azure/azure-monitor/logs/granular-rbac-log-analytics).
