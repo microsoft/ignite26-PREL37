@@ -15,8 +15,6 @@ Platform engineering on AKS is about more than any single tool. This session cov
 Build a thin self-service platform capability on Azure Kubernetes Service (AKS) around a recurring developer task. Connect the installed platform's provisioning and delivery paths, complete a supported environment request, deploy the supplied Fourth Coffee AI application through GitOps, and expose approved changes through Backstage using platform-provided identity and configuration. Recover from a policy rejection and use telemetry, cost evidence, and observed friction to decide what the platform should improve next.
 Each step maps to a practice platform teams use every day: a written developer promise, a versioned environment API, GitOps delivery, a self-service portal, policy guardrails, and evidence-based iteration. You build a small version of each, so the pattern is concrete before you scale it.
 
-**Current status:** The attendee guide matches the implementation assets and preparation contract. Live end-to-end rehearsal is pending, including real startup, reconciliation, application telemetry, and four-hour timing. Telemetry authorization isolation is outside this lab's scope. Source files and setup scripts do not mean a VM image, personalized repositories, or live Azure resources have already been created or validated.
-
 ### How the materials fit together
 
 There is one learner path. `docs/` and `instructions/` lead to the same guide.

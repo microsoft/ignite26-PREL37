@@ -2081,7 +2081,6 @@ Do not turn these into extra in-session PRs or consume the protected breaks to c
 ## Reference material
 
 - [Troubleshooting and safe recovery](#appendix-a-troubleshooting-and-safe-recovery).
-- [Accepted abstract and scope](#session-context).
 - [AKS managed namespaces](https://learn.microsoft.com/azure/aks/concepts-managed-namespaces).
 - [Deployment Safeguards](https://learn.microsoft.com/azure/aks/deployment-safeguards).
 - [Granular RBAC for Azure Monitor Logs](https://learn.microsoft.com/azure/azure-monitor/logs/granular-rbac-log-analytics).
