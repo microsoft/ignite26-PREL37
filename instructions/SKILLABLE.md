@@ -6,8 +6,6 @@ To begin, log into the virtual machine using the following credentials: +++@lab.
 
 **Note:** Text formatted as an +++example+++ represents type text. Clicking on this text will automatically insert it to prevent any typing errors.
 
-===
-
 # Platform engineering on AKS: a paved road to AI apps
 
 ## Overview
@@ -85,6 +83,8 @@ You should recognize Kubernetes namespaces, Deployments, Services, and YAML file
 Use the assigned lab VM, subscription, and accounts, not personal credentials. Organizers provision the Azure foundation before you arrive. Complete [Set up your lab environment](#set-up-your-lab-environment) below before opening the workspace. Ask a proctor if something is missing or a checkpoint is blocked.
 
 Neither Microsoft Entra tenant administrator nor GitHub organization administrator permissions are required. If a step needs permissions you do not have, stop and ask your setup operator or administrator rather than broadening access or resetting work.
+
+===
 
 ## Set up your lab environment
 
