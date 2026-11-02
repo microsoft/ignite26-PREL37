@@ -6,6 +6,8 @@ To begin, log into the virtual machine using the following credentials: +++@lab.
 
 **Note:** Text formatted as an +++example+++ represents type text. Clicking on this text will automatically insert it to prevent any typing errors.
 
+**Note:** If the lab screen goes white or shows **Connecting**, wait a moment or select **Retry Connection**. Anything you type while the connection is down is lost, so check that your last command or answer reached the VM before you continue.
+
 # Platform engineering on AKS: a paved road to AI apps
 
 ## Overview
@@ -45,7 +47,7 @@ Crossplane runs an OpenTofu module (through provider-opentofu) to create the Azu
 
 The platform serves the `beans` application team and its supplied [Fourth Coffee application](https://github.com/pauldotyu/fourth-coffee): a concierge, an operations agent, and a Model Context Protocol (MCP) service that call an already hosted model. You do not write agents or provision GPUs.
 
-The lab uses team and namespace `beans`, request `beans-dev`, and application `fourth-coffee`. If your lab instance uses different identifiers, see [switch an existing lab to Fourth Coffee](#switch-an-existing-lab-to-fourth-coffee). Renaming the example does not rename a live namespace or recreate its Azure resources.
+The lab uses team and namespace `beans`, request `beans-dev`, and application `fourth-coffee`. If your lab instance uses different identifiers, stop: your lab image is out of date, so ask a proctor. Renaming the example does not rename a live namespace or recreate its Azure resources.
 
 One environment request, `beans-dev`, vends everything the team needs to run:
 
@@ -68,7 +70,7 @@ Every `kubectl` command in this guide passes `--context` explicitly so you alway
 
 ### Prepared for you versus built by you
 
-**Prepared before Module 1:** both clusters, the platform controllers and their identities, the shared model and Log Analytics workspace, remote state storage, the shared Gateway, your two private GitHub repositories with controller credentials, the VS Code workspace, and local Backstage. The `AppEnvironment` API, root Argo CD Applications, and the `beans` namespace do not exist yet. That is expected.
+**In place before Module 1:** both clusters, the platform controllers and their identities, the shared model and Log Analytics workspace, and remote state storage are provisioned for you. The [setup steps below](#set-up-your-lab-environment) create the rest: the shared Gateway, your two private GitHub repositories with controller credentials, the VS Code workspace, and local Backstage. The `AppEnvironment` API, root Argo CD Applications, and the `beans` namespace do not exist yet. That is expected.
 
 **Wired by you in Module 2:** the provider configuration, delivery permissions, trusted environment mapping, and root Applications that establish the `AppEnvironment` API.
 
@@ -92,8 +94,8 @@ Azure resources have been pre-provisioned and bootstrapped as much as possible. 
 
 Inside the virtual machine:
 
-1. Open a browser and log in to Azure. Credentials can be found in the **Resources** tab above.
-2. Next, log in via SSO to your provided GitHub account at +++https://github.com/enterprises/skillable-events/sso+++.
+1. Open Microsoft Edge and sign in to Azure at +++https://portal.azure.com+++. Use the **Username** and the **TAP** (Temporary Access Pass) shown on the **Resources** tab above. If Edge asks **Stay signed in?**, select **Yes**.
+2. In the same browser, sign in to your provided GitHub account through SSO at +++https://github.com/enterprises/skillable-events/sso+++. Do this after step 1: SSO uses your Azure sign-in, so GitHub signs you in without asking for anything else. Your account is named `User1-<lab ID>_events`, and your lab ID is @lab.LabInstance.Id.
 3. Open the Ubuntu profile in Windows Terminal, or run this from PowerShell:
 
 ```powershell
@@ -112,12 +114,23 @@ If this directory is missing, ask a proctor. You do not need to clone the upstre
 
 ### Check the assigned accounts in WSL
 
-Windows sign-in does not automatically sign in the Linux Azure CLI or GitHub CLI. Sign in inside WSL using the assigned lab accounts and select the assigned subscription:
+Windows sign-in does not automatically sign in the Linux Azure CLI or GitHub CLI. Sign in to each inside WSL using the assigned lab accounts. Run the two sign-ins one at a time, not together.
+
+First, sign in to Azure:
 
 ```bash
 az login --use-device-code
-gh auth login --hostname github.com --git-protocol https
 ```
+
+Open the sign-in page that `az` prints in Edge, enter the code, and sign in with the same account as before. When `az` asks you to **Select a subscription and tenant**, press **Enter** to keep the default, which is the lab subscription.
+
+Next, sign in to GitHub:
+
+```bash
+gh auth login --hostname github.com --git-protocol https --web
+```
+
+If `gh` asks whether to authenticate Git with your GitHub credentials, answer **Y**. When it prints a one-time code, press **Enter**. `gh` can't open a browser from WSL, so it reports that it failed to open one and then waits. That is expected. Open +++https://github.com/login/device+++ in Edge, type the code from the terminal, and approve the sign-in. `gh` then finishes on its own.
 
 Check both:
 
@@ -138,11 +151,16 @@ make setup
 
 If setup reports that no Terraform state exists and prepares only the VM, stop and ask a proctor to check `C:\terraform\terraform.tfstate`. Do not proceed until the learner environment has been configured.
 
-- When prompted if your GitHub organization differs from your user account, type `n` so that repositories are created under your user account.
-- When prompted for your GitHub author name, enter the same name you use for your GitHub account.
-- When prompted for your GitHub email, enter the same email you used to log into your Azure and GitHub accounts.
+Setup asks four questions, in this order:
 
-When the command is done, rather than following instructions on the screen, just run this to source environment variables.
+1. **GitHub Username:** press **Enter** to accept the detected account, `User1-<lab ID>_events`.
+2. **Is your GitHub org different from your username? (y/N):** type `n`, so the repositories are created under your user account.
+3. **Git Author Name:** enter your GitHub account name, `User1-<lab ID>_events`.
+4. **Git Author Email:** enter the email you used to sign in to Azure and GitHub, which is the **Username** on the **Resources** tab.
+
+Setup is done when you see **WORKSHOP FILES AND PLATFORM PACKAGES READY**. The summary on screen lists the next steps, which follow in this guide. If setup stops with an error, fix the cause and rerun `make setup`; it picks up where it stopped. Setup saves your answers in `$LAB_ROOT/config/setup.env`, so to enter them again, delete that file first with `rm "$LAB_ROOT/config/setup.env"`. If you gave the wrong GitHub username or answered `y` to the organization question, ask a proctor before you rerun setup.
+
+Now load your environment variables:
 
 ```bash
 source "$LAB_ROOT/config/lab.env"
@@ -150,22 +168,30 @@ source "$LAB_ROOT/config/lab.env"
 
 ### Set up GitHub tokens
 
-In the browser, navigate to +++https://github.com/settings/personal-access-tokens/new+++, create two fine-grained personal access tokens. For both, set **Resource owner** to the account that owns your repositories and **Repository access** to the two private +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++ repositories.
+In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-<lab ID>_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own.
 
-> As you create each token, copy and paste the values to a file for later use as you will need them for the next step
+> As you create each token, copy it into Notepad on Windows and note which one it is. GitHub shows a token only once, and you need both in the next step. Delete the text from Notepad after `make auth` succeeds.
 
-Ensure the tokens have the following permissions enabled:
+**Read token**, for Argo CD and Crossplane:
 
-- **Read token:** `Contents: Read-only`, for Argo CD and Crossplane.
-- **Backstage token:** `Contents: Read and write`, `Pull requests: Read and write`, and `Commit statuses: Read-only`. Contents and commit-status access let Backstage read the catalog and populate the Module 4 Application picker. Pull-request write access lets the template open its PR after pushing a branch.
+1. **Token name:** +++prel37-read+++
+2. **Permissions:** add **Contents** and leave it at **Read-only**.
 
-Back in WSL, run the following to apply the tokens to the cluster.
+**Backstage token:**
+
+1. **Token name:** +++prel37-backstage+++
+2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**.
+
+Contents and commit-status access let Backstage read the catalog and populate the Module 4 Application picker. Pull-request write access lets the template open its PR after pushing a branch.
+
+Back in WSL, apply the tokens to the cluster. Start with the `cd` so this also works in a new terminal.
 
 ```bash
+cd "$HOME/prel37/setup"
 make auth
 ```
 
-Enter both tokens when prompted. Wait for the helper to finish applying the controller credentials and workload-cluster registration before continuing.
+Paste each token when prompted, the read token first. In WSL, paste with **Ctrl+Shift+V**. Wait for the helper to finish applying the controller credentials and workload-cluster registration. It is done when you see **All platform secrets applied to Control Cluster**.
 
 ### Start Backstage and Argo CD
 
@@ -185,7 +211,7 @@ source "$HOME/prel37/config/lab.env"
 make argocd
 ```
 
-Confirm +++http://localhost:3000+++ displays Backstage and select **Enter** as the guest user. Open +++https://localhost:8443+++, accept the local certificate warning, and sign in as `admin` with the password printed by `make argocd`.
+Confirm +++http://localhost:3000+++ displays Backstage and select **Enter** as the guest user. The first start compiles Backstage and can take a few minutes, so wait for the page to load. Open +++https://localhost:8443+++, accept the local certificate warning, and sign in as `admin` with the password printed by `make argocd`.
 
 ### Configure the VS Code workspace
 
@@ -197,7 +223,7 @@ source "$HOME/prel37/config/lab.env"
 code "$LAB_ROOT/prel37.code-workspace"
 ```
 
-Confirm VS Code is connected to WSL.
+Confirm VS Code is connected to WSL: the bottom-left corner of the window shows **WSL** and the name of your Linux distribution.
 
 <a id="open-the-prepared-workspace"></a>
 
@@ -207,7 +233,13 @@ Use this section to confirm the workspace, and again whenever you open a new ter
 
 ### 1. Open the workspace in VS Code
 
-If it is not already open, open `~/prel37/prel37.code-workspace` in VS Code (**File** > **Open Workspace from File**). The Explorer shows three folders:
+If it is not already open, run this in a WSL terminal:
+
+```bash
+code "$HOME/prel37/prel37.code-workspace"
+```
+
+Open the workspace this way rather than with **File** > **Open Workspace from File**, because a VS Code window that isn't connected to WSL can't see `~/prel37`. The Explorer shows three folders:
 
 | Workspace folder | Path on disk          | What it holds                                                                               |
 | ---------------- | --------------------- | ------------------------------------------------------------------------------------------- |
@@ -219,7 +251,7 @@ If VS Code or the workspace file is missing, ask a proctor.
 
 ### 2. Load your environment in the terminal
 
-Open the command palette (**View** > **Command Palette** or **Ctrl+Shift+P**) and type `Terminal: Create New Terminal in Editor Area`.
+Open the command palette (**View** > **Command Palette** or **Ctrl+Shift+P**) and type `Terminal: Create New Terminal in Editor Area`. If VS Code asks which folder to use, choose **Lab Root**.
 
 ```bash
 source ~/prel37/config/lab.env
@@ -243,6 +275,18 @@ If Backstage or Argo CD does not load, the local service is not running or its t
 
 At this point Argo CD shows no applications and `beans` does not exist. You create both in Module 2.
 
+### Resuming your lab
+
+If you reconnect to a saved lab or reopen your terminals, you don't repeat setup. In a WSL terminal, refresh your cluster access and load your environment:
+
+```bash
+cd "$HOME/prel37/setup"
+make connect
+source "$HOME/prel37/config/lab.env"
+```
+
+If `make connect` reports an account mismatch, sign in again with the assigned lab account (`az login --use-device-code`) and rerun it. Then restart whatever stopped, each in its own terminal, as shown in [Start Backstage and Argo CD](#start-backstage-and-argo-cd). From Module 3, restart the application tunnel from [Module 3, step 6](#6-open-the-application-through-the-gateway); `make app` runs the same commands.
+
 ## How to use this guide
 
 Every module follows the same rhythm:
@@ -255,7 +299,7 @@ Every module follows the same rhythm:
 Two conventions keep the steps predictable:
 
 - **Read files in VS Code.** When a step says _In VS Code, open `api/xrd.yaml` (Platform folder)_, use the Explorer to open the file and read it. You can click around and explore.
-- **Make changes in the terminal.** Edits, Git, and GitHub actions are terminal commands you copy and run. This keeps every learner's change identical and reviewable. Do not also edit the same file in VS Code; if you do, `git diff` shows exactly what changed so you can fix it.
+- **Make changes in the terminal.** Edits, Git, and GitHub actions are terminal commands you copy and run. This keeps every learner's change identical and reviewable. Do not also edit the same file in VS Code; if you do, `git --no-pager diff` shows exactly what changed so you can fix it.
 
 Most waits are reconciliation: a controller noticing a change and acting on it. Each module tells you how long to expect and how to ask Argo CD to check Git immediately instead of waiting for its next poll.
 
@@ -272,20 +316,25 @@ git status --short                 # expect no output
 # 2. Branch, change, and review your own diff
 git checkout -b <branch-name>
 # ... the module's change command ...
-git diff                           # confirm only the intended lines changed
+git --no-pager diff                # confirm only the intended lines changed
 
 # 3. Commit only the named file and publish the branch
 git add <file>
 git commit -m "<message>"
 git push -u origin <branch-name>
 
-# 4. Open, review, and merge the PR
+# 4. Open, review, and merge the PR (run each gh command on its own, and wait for it to finish)
 gh pr create --fill
 gh pr diff
 gh pr merge --merge --delete-branch
 ```
 
 `gh pr merge --delete-branch` also switches your clone back to `main` and pulls the merge, so you are ready for the next change.
+
+Two habits avoid surprises with the terminal:
+
+- **Use `git --no-pager`** for `git diff` and `git log`. Without it, Git opens a pager (`less`) when the output is long, and anything you type next goes to the pager instead of the shell. If you see a `:` prompt or a `(END)` marker, press **q** to leave it.
+- **Run `gh pr create` and `gh pr merge` as the last command in a block.** `gh` can discard keystrokes that arrive while it is running, so wait for it to finish before you type the next command. The guide puts the commands that follow in their own block.
 
 Rules that keep the lab safe:
 
@@ -310,7 +359,7 @@ Follow the modules in order. Each one builds on the environment the previous mod
 | 02:55-03:40 | [5. Recover, inspect telemetry, and evaluate cost](#module-5-recover-inspect-telemetry-and-evaluate-cost) | See a guardrail reject an unsafe change, recover through Git, and make a cost decision.             |
 | 03:40-04:00 | [6. Plan the next platform milestone](#module-6-plan-the-next-platform-milestone)                         | Choose the next improvement and the evidence that would prove it worked.                            |
 
-Between Modules 1 and 2, the optional [foundation interlude](#interlude-choose-the-foundation-for-the-promise) explains why the platform runs on AKS Standard and AKS Automatic. Read it before Module 2, during a break, or after the session. The [summary](#summary-and-take-home-material) is the take-home reference. To continue after the session, the [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage) vends a second environment from a single Backstage form. Use [Appendix A: troubleshooting](#appendix-a-troubleshooting-and-safe-recovery) when a result does not match.
+Between Modules 1 and 2, the optional [foundation interlude](#interlude-choose-the-foundation-for-the-promise) explains why the platform runs on AKS Standard and AKS Automatic. Read it before Module 2, during a break, or after the session. The [summary](#summary-and-take-home-material) is the take-home reference. If at least 35 minutes remain on the lab timer after Module 6, the [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage) vends a second environment from a single Backstage form. Use [Appendix A: troubleshooting](#appendix-a-troubleshooting-and-safe-recovery) when a result does not match.
 
 **Facilitators:** announce each practice stop time and hold the debrief even if a reconciliation is still pending. Return to status during catch-up. Do not recover time by cutting explanations or breaks.
 
@@ -332,7 +381,7 @@ Ownership stays separate. OpenTofu owns the Azure resources and the managed name
 
 ## Application telemetry
 
-The model-calling agents export OpenTelemetry from their own code, authenticating with their vended identity, straight to Azure Monitor's cloud OTLP endpoints. Because the app does the exporting, nothing extra runs in the cluster: no AKS application monitoring add-on, no `Instrumentation` resource, and no collector pod. Each agent's Application Insights data collection rule (DCR) then routes its spans to the lab's Log Analytics workspace, tagged with the team's resource. This path requires the [approved direct-export application artifact](https://github.com/pauldotyu/ignite26-PREL37/blob/main/setup/README.md#application-artifact-prerequisite). After the environment is vended, print the Azure portal link:
+The model-calling agents export OpenTelemetry from their own code, authenticating with their vended identity, straight to Azure Monitor's cloud OTLP endpoints. Because the app does the exporting, nothing extra runs in the cluster: no AKS application monitoring add-on, no `Instrumentation` resource, and no collector pod. Each agent's Application Insights data collection rule (DCR) then routes its spans to the lab's Log Analytics workspace, tagged with the team's resource. This path requires the pinned Fourth Coffee release recorded in `config/artifact-lock.json`. After you vend the environment in Module 2, print the Azure portal link. Until then the command reports that Application Insights has not been vended yet:
 
 ```bash
 kubectl --context "$CONTROL_CONTEXT" get appenvironment "$APP_ENV" -o json |
@@ -355,11 +404,11 @@ In the resource, use **Investigate** > **Search** to follow a chat request to it
 | `answers/product-brief.md` | Your single worksheet for the whole session                                         |
 | `.state/`, `.credentials/` | Private state and tokens. Never copy these into Git or your notes.                  |
 
-The source for these files lives in this repository under `src/`. The prepared copies are personalized for your lab, so do not copy them from another attendee.
+The source for these files is bundled in the Lab Root folder under `setup/src/`. The prepared copies are personalized for your lab, so do not copy them from another attendee.
 
 ## Recording your results
 
-Use `answers/product-brief.md` (Lab Root folder) as your only worksheet. For each checkpoint, record the PR or request, the merged revision, what you observed, and whether you completed it **independently**, **assisted**, **demonstration-only**, or **blocked**. Mark evidence that has not arrived as pending rather than passed. Use synthetic inputs only; do not paste credentials or raw telemetry.
+Use `answers/product-brief.md` (Lab Root folder) as your only worksheet. VS Code does not autosave in this lab, so press **Ctrl+S** after each entry. For each checkpoint, record the PR or request, the merged revision, what you observed, and whether you completed it **independently**, **assisted**, **demonstration-only**, or **blocked**. Mark evidence that has not arrived as pending rather than passed. Use synthetic inputs only; do not paste credentials or raw telemetry.
 
 ===
 
@@ -436,7 +485,7 @@ Do not reproduce the demonstration yet. Your environment has installed controlle
 
 **10 minutes.**
 
-In VS Code, open `answers/product-brief.md` (**Lab Root** folder). You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go. If VS Code is not open yet, follow [Open the prepared workspace](#open-the-prepared-workspace).
+In VS Code, open `answers/product-brief.md` (**Lab Root** folder). You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go, and press **Ctrl+S** after each entry. If VS Code is not open yet, follow [Open the prepared workspace](#open-the-prepared-workspace).
 
 ### 1. Name the task and friction
 
@@ -518,7 +567,7 @@ After reading, you will be able to:
 
 > [!knowledge] **Platform concept: build the product, not the plumbing.** In Module 1 you wrote a promise. Every hour spent patching nodes, wiring ingress, or rotating credentials is an hour not spent keeping it. Choose a foundation that already handles the undifferentiated work, then spend your effort on the contract and the golden path.
 
-No infrastructure changes happen here. This page explains choices that are already made in `infra/main.tf`.
+No infrastructure changes happen here. This page explains choices that are already made in `infra/main.tf`, which you can read in the Lab Root folder under `setup/infra/`.
 
 <a id="from-promise-to-foundation"></a>
 
@@ -706,7 +755,7 @@ Every resource has exactly one owner. Two controllers managing the same object u
 
 The remote module `opentofu/managed-namespace/main.tf` is one complete file that only the controller runs. Do not run Terraform or OpenTofu against it from your computer.
 
-Each request vends one team environment. The request's `team` names the namespace and the team's Azure resources, such as `id-prel37-<lab>-beans` and `appi-prel37-<lab>-beans`. The request's `metadata.name` names its Workspace, Argo CD projects, and baseline Application. This workshop uses team `beans`, application `fourth-coffee`, and request `beans-dev`, which `lab.env` sets as `$TEAM`, `$APP_NAME`, and `$APP_ENV`.
+Each request vends one team environment. The request's `team` names the namespace and the team's Azure resources, such as the per-agent identities `id-prel37-<lab>-beans-concierge` and `id-prel37-<lab>-beans-ops-agent`, and `appi-prel37-<lab>-beans`. The request's `metadata.name` names its Workspace, Argo CD projects, and baseline Application. This workshop uses team `beans`, application `fourth-coffee`, and request `beans-dev`, which `lab.env` sets as `$TEAM`, `$APP_NAME`, and `$APP_ENV`.
 
 ### Why cost attribution belongs in the contract
 
@@ -733,7 +782,7 @@ kubectl --context "$CONTROL_CONTEXT" -n crossplane-system get secret module-git-
 kubectl --context "$CONTROL_CONTEXT" -n argocd get secret repo-platform repo-app-deploy cluster-workload
 ```
 
-**Expected result:** the provider and three functions report `condition met`, and all four Secrets are listed. These Secrets hold the scoped GitHub tokens from `make auth` and the workload-cluster registration. If a Secret is missing, see [workspace or local service is unavailable](#workspace-sign-in-or-local-service-is-unavailable).
+**Expected result:** the provider and three functions report `condition met`, and all four Secrets are listed. These Secrets hold the scoped GitHub tokens from `make auth` and the workload-cluster registration. If a Secret is missing, run `cd ~/prel37/setup && make auth`, then repeat this step. If that doesn't fix it, see [workspace or local service is unavailable](#workspace-sign-in-or-local-service-is-unavailable).
 
 ### 2. Connect execution, identity, and delivery permissions
 
@@ -778,7 +827,7 @@ Before turning on delivery, follow one field from the API to Azure. In VS Code, 
 | File                                 | Find                                                                | Why it matters                                                                                                                                |
 | ------------------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `api/xrd.yaml`                       | `costCenter` with pattern `^CC-[0-9]{4}$`, and the `required:` list | The field exists but is not required. That is the contract gap you close in Cycle 1.                                                          |
-| `api/composition.yaml`               | `cost_center: {{ $xr.spec.costCenter }}` in the Workspace `varmap`  | The Composition passes the developer's value to OpenTofu alongside trusted values from `environment.yaml`.                                    |
+| `api/composition.yaml`               | The `cost_center:` line in the Workspace `varmap`                   | The Composition passes the developer's value to OpenTofu alongside trusted values from `environment.yaml`.                                    |
 | `opentofu/managed-namespace/main.tf` | `variable "cost_center"` and where `var.cost_center` is used        | It becomes the namespace label `platform.prel37.example/cost-center` and a `cost-center` tag on the team's agent identities and App Insights. |
 
 The Composition also creates two Argo CD AppProjects per request, both limited to the team's namespace. `beans-dev` allows the app's Deployments, Services, ConfigMaps, Secrets, and HTTPRoutes. `beans-dev-baseline` allows only ServiceAccounts, ConfigMaps, and NetworkPolicies. Neither can create cluster-wide resources or Namespaces. The baseline supplies native OTLP cloud URLs and routing attributes in `platform-context`; it does not require an `Instrumentation` CRD or a collector in the cluster.
@@ -839,7 +888,7 @@ grep -v costCenter examples/request.yaml | sed 's/name: beans-dev/name: contract
 git checkout main && git pull origin main
 git checkout -b update-request-schema
 sed -i.bak 's/required: \[team, application, owner\]/required: [team, application, owner, costCenter]/' api/xrd.yaml && rm api/xrd.yaml.bak
-git diff
+git --no-pager diff
 ```
 
 **Expected result:** the diff shows one changed line, from `required: [team, application, owner]` to `required: [team, application, owner, costCenter]`. If the diff is empty, the `sed` did not match; check that `api/xrd.yaml` is unchanged from `main` and ask for help rather than editing other lines.
@@ -851,6 +900,11 @@ git add api/xrd.yaml
 git commit -m "feat: require costCenter in AppEnvironment request"
 git push -u origin update-request-schema
 gh pr create --fill
+```
+
+Wait for `gh` to finish, then review the diff:
+
+```bash
 gh pr diff
 ```
 
@@ -890,12 +944,14 @@ grep -v costCenter examples/request.yaml | sed 's/name: beans-dev/name: contract
 cd "$LAB_ROOT/platform"
 git checkout main && git pull origin main
 git checkout -b submit-env-request
-test ! -e "requests/$APP_ENV.yaml" && cp examples/request.yaml "requests/$APP_ENV.yaml"
+if [ -e "requests/$APP_ENV.yaml" ]; then echo "STOP: requests/$APP_ENV.yaml already exists"; else cp examples/request.yaml "requests/$APP_ENV.yaml"; fi
 REQUESTER_ID="$(az ad signed-in-user show --query id -o tsv)"
+echo "Requester object ID: $REQUESTER_ID"
 sed -i.bak "s/00000000-0000-0000-0000-000000000000/$REQUESTER_ID/" "requests/$APP_ENV.yaml" && rm "requests/$APP_ENV.yaml.bak"
+git status --short
 ```
 
-If `test` stops the command, `requests/beans-dev.yaml` already exists from an earlier attempt in this lab. Do not overwrite it; check whether its PR already merged.
+**Expected result:** the requester object ID line shows a GUID, and `git status --short` prints `?? requests/beans-dev.yaml`. If you see `STOP`, `requests/beans-dev.yaml` already exists from an earlier attempt in this lab. Do not overwrite it; check whether its PR already merged.
 
 In VS Code, open `requests/beans-dev.yaml` (**Platform** folder) and read it. Every field is intent:
 
@@ -914,11 +970,16 @@ Another team would change `metadata.name`, `team`, `application`, and `owner` to
 #### 6. Commit, open, review, and merge the PR
 
 ```bash
-git diff --stat main
 git add "requests/$APP_ENV.yaml"
+git --no-pager diff --staged --stat
 git commit -m "feat: request $APP_ENV environment"
 git push -u origin submit-env-request
 gh pr create --fill
+```
+
+Wait for `gh` to finish, then review the diff:
+
+```bash
 gh pr diff
 ```
 
@@ -926,12 +987,18 @@ Check that the diff adds only `requests/beans-dev.yaml` and that `requesterObjec
 
 ```bash
 gh pr merge --merge --delete-branch
+```
+
+Note the time, then ask Argo CD to check Git now. You record how long the request takes to become `Ready` in the worksheet.
+
+```bash
+date
 kubectl --context "$CONTROL_CONTEXT" -n argocd annotate application platform-requests argocd.argoproj.io/refresh=normal --overwrite
 ```
 
 ### Trace the fulfillment
 
-One merge starts a chain across Git, two clusters, and Azure. Allow the 15-minute provisioning window below. The module creates Azure resources, discovers the native OTLP endpoints, and grants the agent identities access to the application's DCR before the baseline is delivered. This checkpoint proves the connection contract exists, not that the application has exported telemetry; Module 3 proves that separately.
+One merge starts a chain across Git, two clusters, and Azure. Allow up to 15 minutes. In rehearsal the environment became `Ready` about 7 minutes after the merge, so the 15-minute limit is a ceiling, not the usual wait. Use the wait to start on the debrief questions below. The module creates Azure resources, discovers the native OTLP endpoints, and grants the agent identities access to the application's DCR before the baseline is delivered. This checkpoint proves the connection contract exists, not that the application has exported telemetry; Module 3 proves that separately.
 
 #### 7. Watch the request move from accepted to ready
 
@@ -953,9 +1020,10 @@ When you are ready to wait for the end, run:
 
 ```bash
 kubectl --context "$CONTROL_CONTEXT" wait --for=condition=Ready appenvironment "$APP_ENV" --timeout=15m
+date
 ```
 
-**Expected result:** `appenvironment.platform.prel37.example/beans-dev condition met`. If it times out, see [environment request is merged but not ready](#environment-request-is-merged-but-not-ready).
+**Expected result:** `appenvironment.platform.prel37.example/beans-dev condition met`, then the current time. Record the time from the merge in step 6 to now in the worksheet. If it times out, see [environment request is merged but not ready](#environment-request-is-merged-but-not-ready).
 
 #### 8. Verify the Azure managed namespace
 
@@ -982,7 +1050,7 @@ kubectl --context "$AKS_CONTEXT" -n "$TEAM" get configmap platform-context -o js
 kubectl --context "$CONTROL_CONTEXT" get appenvironment "$APP_ENV" -o jsonpath='{.status.binding}' | jq
 ```
 
-**Expected result:** the ServiceAccounts `concierge` and `ops-agent`, ConfigMap `platform-context`, and NetworkPolicy `allow-platform-gateway` exist in `beans`, and the endpoint check prints `true`. Each ServiceAccount carries a different `azure.workload.identity/client-id` annotation, because each agent has its own Azure identity. The binding lists `namespace`, `serviceAccountNames`, `configMapName`, `configPath`, and `appUrl`. Module 3 uses these names to connect the application. There is no `Instrumentation` resource or cluster DCR association to wait for.
+**Expected result:** the ServiceAccounts `concierge` and `ops-agent`, ConfigMap `platform-context`, and NetworkPolicy `allow-platform-gateway` exist in `beans`, and the endpoint check prints `true`. Each ServiceAccount carries a different `azure.workload.identity/client-id` annotation, because each agent has its own Azure identity. The binding lists `namespace`, `serviceAccountNames`, `configMapName`, `argoProject`, `argoApplication`, `configPath`, and `appUrl`. Module 3 uses these names to connect the application. There is no `Instrumentation` resource or cluster DCR association to wait for.
 
 In Argo CD you now also see `beans-dev-baseline` (Synced, Healthy) and `fourth-coffee`. `fourth-coffee` shows sync status `Unknown` because its folder in app-deploy does not exist yet. You create it in Module 3.
 
@@ -1038,7 +1106,7 @@ By the end of this module, you will be able to:
 > [!knowledge] **AKS in action: workload identity and the managed Gateway.** The model call in this module needs no key because AKS Automatic turns on [workload identity](https://learn.microsoft.com/azure/aks/workload-identity-overview) and an OIDC issuer by default; the platform only federates each agent's ServiceAccount. Traffic reaches the app through the [App Routing Gateway API implementation](https://learn.microsoft.com/azure/aks/app-routing-gateway-api), which AKS runs and upgrades, so each team adds one route instead of operating an ingress controller. See [why AKS is the foundation](#from-promise-to-foundation).
 
 **Starting state:** Module 2 produced the `beans` namespace and baseline, including the `concierge` and `ops-agent` ServiceAccounts and the `platform-context` ConfigMap. The platform also created the Argo CD Application `fourth-coffee`, which is waiting for your configuration. If the baseline is blocked, follow [environment troubleshooting](#environment-request-is-merged-but-not-ready) before submitting the application. You can also ask a proctor for help.
-**Working in a lab prepared for a different application?** Follow [the Fourth Coffee migration](#switch-an-existing-lab-to-fourth-coffee) first. Keep that lab's application identifier and use the names in `status.binding`; the literal `fourth-coffee` paths below describe a fresh lab.
+**Working in a lab prepared for a different application?** Stop: your lab image is out of date, so ask a proctor. The literal `fourth-coffee` paths below describe a fresh lab.
 
 ## The golden path: consuming the platform contract
 
@@ -1088,7 +1156,7 @@ Until you commit those files, Argo CD reports that `values.yaml` is missing. Tha
 
 Each source has its own job. The chart source is pinned to the approved platform commit in `moduleRevision`, and the image is a published release artifact; configuration on `main` changes as you complete the exercises. Canonical profiles live in `platform/profiles/workload-small.yaml` and `workload-standard.yaml`. The staged `profile.yaml` is an exact copy of the approved `small` profile. Module 4 replaces **that file**, not the Application's value-file reference.
 
-> [!note] The pinned tag `0.1.0-12.1.ge412f12`, from [source revision `969ca1acae851d0ef3cb60619d5e0d6e90523fda`](https://github.com/pauldotyu/fourth-coffee/tree/969ca1acae851d0ef3cb60619d5e0d6e90523fda), includes renewable native OTLP authentication. Its verified image-index digest is `sha256:ece6b82e6411d47a17c48e6b550eac0571e19818ecf5b1fe1d4ef0b2113fa043`. The upstream OCI chart is recorded at the same release in the artifact lock; this lab's chart adapter keeps ServiceAccounts, the route, and digest pinning platform-owned. Attendees use the published image, not a local build. The [operator prerequisites](https://github.com/pauldotyu/ignite26-PREL37/blob/main/setup/README.md#application-artifact-prerequisite) and this module's fresh interaction still need to prove that the assigned lab exports successfully.
+> [!note] The pinned tag `0.1.0-12.1.ge412f12`, from [source revision `969ca1acae851d0ef3cb60619d5e0d6e90523fda`](https://github.com/pauldotyu/fourth-coffee/tree/969ca1acae851d0ef3cb60619d5e0d6e90523fda), includes renewable native OTLP authentication. Its verified image-index digest is `sha256:ece6b82e6411d47a17c48e6b550eac0571e19818ecf5b1fe1d4ef0b2113fa043`. The upstream OCI chart is recorded at the same release in the artifact lock; this lab's chart adapter keeps ServiceAccounts, the route, and digest pinning platform-owned. Attendees use the published image, not a local build.
 
 Normal deployments render the locked image digest in the Pod specification, rather than the tag, to prevent upstream tag drift. The chart deliberately renders `:latest` for the explicit `image.tag=latest` teaching fixture in Module 5; restoring the locked tag restores the digest-pinned image.
 
@@ -1198,6 +1266,7 @@ sed -i.bak \
 ```yaml
 extraEnvFrom:
   - configMapRef:
+      # status.binding.configMapName on your AppEnvironment
       name: platform-context
 ```
 
@@ -1209,10 +1278,15 @@ New files do not show in plain `git diff`, so stage the two files first and revi
 
 ```bash
 git add "apps/$APP_NAME/values.yaml" "apps/$APP_NAME/profile.yaml"
-git diff --staged
+git --no-pager diff --staged
 git commit -m "feat: deploy $APP_NAME to $TEAM"
 git push -u origin "deploy-$APP_NAME"
 gh pr create --fill
+```
+
+Wait for `gh` to finish, then list the files in the PR:
+
+```bash
 gh pr diff --name-only
 ```
 
@@ -1283,17 +1357,20 @@ date -u +%FT%TZ
 
 Telemetry timestamps are in UTC, so this gives you a time to compare against.
 
-**2. Use the app.** At `http://beans.localhost:8080`, type a message such as `Suggest two coffee options for someone who likes oat milk` and select **Send**. Then select **The Daily** under **Meet your next usual**, enter a made-up name for pickup, and select **Confirm** when the draft is ready. Use synthetic information only.
+**2. Use the app.** At `http://beans.localhost:8080`, type a message such as `Suggest two coffee options for someone who likes oat milk` and select **Send**. Then select **Surprise me** in the **On the board** panel, or ask the barista for a drink, so the barista drafts an order. Enter a made-up name under **Name on the cup** and select **Confirm and brew**. At the VM's screen size the page is a single column, so the order ticket sits below the chat; scroll down to find it, or zoom out with **Ctrl+minus** to see the columns side by side. Use synthetic information only.
 
 **3. Find your model call.** The agents send authenticated OTLP requests directly to Azure Monitor's cloud ingestion endpoints. The Application Insights DCR routes spans to `OTelSpans` in the lab's Log Analytics workspace, attributed to your Application Insights resource. Allow a few minutes for ingestion, then run:
 
 ```bash
 APPI_ID=$(kubectl --context "$CONTROL_CONTEXT" get appenvironment "$APP_ENV" -o jsonpath='{.status.appInsightsResourceId}')
 LAW_CUSTOMER_ID=$(az resource show --ids "$LOG_ANALYTICS_WORKSPACE_ID" --query properties.customerId -o tsv)
+echo "APPI_ID=$APPI_ID LAW_CUSTOMER_ID=$LAW_CUSTOMER_ID"
 az monitor log-analytics query --workspace "$LAW_CUSTOMER_ID" \
   --analytics-query "let app = '$APPI_ID'; $(cat "$LAB_ROOT/queries/application-model-call.kql")" \
   -o table
 ```
+
+The `echo` line shows both values. If either is blank, the query returns no rows, which looks like slow ingestion. Check that you ran `source ~/prel37/config/lab.env` in this terminal and that the Module 2 checkpoint passed. The first `az monitor log-analytics` command may stop to ask whether to install the `log-analytics` extension. If it does, answer **Y**; it is a preview extension, so `az` also prints a warning, which is expected.
 
 The query returns one row per model call made while answering a chat message in the last 30 minutes, filtered to your application's resource. One chat message can make more than one model call.
 
@@ -1380,7 +1457,7 @@ Instead of asking for CPU and memory numbers ("I need 400m CPU and 512Mi RAM"), 
 | `small`    | "I need a basic dev environment"     | 200m CPU, 256Mi RAM (per agent)     |
 | `standard` | "I need more headroom for my agents" | 400m CPU, 512Mi RAM (per agent)     |
 
-The platform team defines what these names mean in the platform repository (`profiles/workload-small.yaml` and `profiles/workload-standard.yaml`). Resource requests stay aligned with approved sizes, and developers cannot accidentally request more than the namespace quota allows.
+The platform team defines what these names mean in the platform repository (`profiles/workload-small.yaml` and `profiles/workload-standard.yaml`). Backstage copies one of those approved files, so a request made through the form stays aligned with the approved sizes. The namespace quota is the only bound the platform enforces on size: the chart schema does not check CPU or memory values, so a hand-edited `profile.yaml` is stopped only when its total exceeds the quota.
 
 ### The front door and the pipeline
 
@@ -1393,7 +1470,7 @@ Because the portal only writes to Git, the platform can layer its governance:
 
 1. **Interface:** the dropdown (`enum`) limits the choices a developer sees.
 2. **Review:** the pull request lets a person or a bot check the change.
-3. **Admission:** Kubernetes admission controllers and Helm schemas validate the final YAML before it is applied.
+3. **Admission:** Kubernetes admission policy, the namespace quota, and the chart's Helm schema (which checks the image, the identity mapping, and the configuration reference) validate the final YAML before it is applied.
 
 A dropdown alone is not a control. Anyone with write access can skip the UI and commit an invalid value directly to Git. Placing the real controls in the pipeline keeps the platform safe even when the front door is bypassed. This is the difference between a supported interface and an authorization boundary.
 
@@ -1448,23 +1525,33 @@ sed -i.bak \
   -e 's/enum: \[small\]$/enum: [small, standard]/' \
   -e 's/description: Choose the small profile\.$/description: Choose using demand evidence. Standard has higher app requests and memory limits; namespace quota is unchanged./' \
   backstage/templates/ai-app/template.yaml && rm backstage/templates/ai-app/template.yaml.bak
-git diff
+git --no-pager diff
 ```
 
 **Expected result:** `git status --short` prints nothing, and the diff shows exactly two changed lines: `description` and `enum`. If the diff is empty, the file did not match what step 1 showed; ask for help rather than editing other lines.
 
-A template change is a platform change, so it goes through a PR like any other. Commit only the template, then open, review, and merge the PR:
+A template change is a platform change, so it goes through a PR like any other. Commit only the template, then open the PR:
 
 ```bash
 git add backstage/templates/ai-app/template.yaml
 git commit -m "feat: offer the standard profile in Backstage"
 git push -u origin add-standard-profile
 gh pr create --fill
+```
+
+Wait for `gh` to finish, then review the diff:
+
+```bash
 gh pr diff
+```
+
+The diff shows the same two lines. Then merge:
+
+```bash
 gh pr merge --merge --delete-branch
 ```
 
-**Expected result:** the PR diff shows the same two lines, and `gh` reports the PR merged with your clone back on `main`.
+**Expected result:** `gh` reports the PR merged with your clone back on `main`.
 
 ### 3. Refresh the published template in Backstage
 
@@ -1489,7 +1576,7 @@ for p in small standard; do
 done
 ```
 
-**Expected result:** `current profile: small`. If it already says `standard`, a new request has nothing to change and Backstage opens no PR. Record that as a verified no-change result.
+**Expected result:** `current profile: small`. If it already says `standard`, a new request has nothing to change. Backstage usually fails the task, for example with a `null response from GitHub` error, instead of opening a PR. Record that as a verified no-change result.
 
 Back in the Backstage form:
 
@@ -1505,17 +1592,22 @@ Review the PR from your terminal, the same way you review your own. A portal-gen
 
 ```bash
 cd "$LAB_ROOT/app-deploy"
-gh pr list
+gh pr view "backstage/$APP_NAME-profile-standard" --json title --jq .title
 gh pr diff "backstage/$APP_NAME-profile-standard" --name-only
 gh pr diff "backstage/$APP_NAME-profile-standard"
 ```
 
-**Expected result:** `gh pr list` shows **Use the standard profile for fourth-coffee**. The only changed file is `apps/fourth-coffee/profile.yaml`. In it, `opsAgent` and `concierge` move from `200m, 256Mi` requests and a `768Mi` memory limit to `400m, 512Mi` requests and a `1536Mi` limit. `fourthCoffeeMcp` and `values.yaml` are untouched. If the PR changes any other file, do not merge it; ask for help.
+**Expected result:** the first command prints **Use the standard profile for fourth-coffee**. The only changed file is `apps/fourth-coffee/profile.yaml`. In it, `opsAgent` and `concierge` move from `200m, 256Mi` requests and a `768Mi` memory limit to `400m, 512Mi` requests and a `1536Mi` limit. `fourthCoffeeMcp` and `values.yaml` are untouched. If the PR changes any other file, do not merge it; ask for help.
 
-Merge it, then confirm `main` matches the standard profile:
+Merge it:
 
 ```bash
 gh pr merge "backstage/$APP_NAME-profile-standard" --merge --delete-branch
+```
+
+When `gh` finishes, confirm `main` matches the standard profile:
+
+```bash
 git checkout main && git pull origin main
 for p in small standard; do
   diff -q "apps/$APP_NAME/profile.yaml" "$LAB_ROOT/platform/profiles/workload-$p.yaml" >/dev/null && echo "current profile: $p"
@@ -1708,7 +1800,7 @@ git checkout main && git pull origin main
 git status --short
 git checkout -b try-latest-tag
 sed -i.bak 's/^  tag: ".*"$/  tag: "latest"/' "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
-git diff
+git --no-pager diff
 ```
 
 **Expected result:** `git status --short` prints nothing, and the diff shows one line, from the organizer-approved image tag to `tag: "latest"`. `profile.yaml` stays at `standard`. Backstage never offers a mutable tag; you are making this change by hand only to watch the guardrail work.
@@ -1722,11 +1814,22 @@ git add "apps/$APP_NAME/values.yaml"
 git commit -m "test: use the latest image tag"
 git push -u origin try-latest-tag
 gh pr create --fill
+```
+
+Wait for `gh` to finish, then list the files in the PR:
+
+```bash
 gh pr diff --name-only
+```
+
+Then merge:
+
+```bash
 gh pr merge --merge --delete-branch
 ```
 
 **Expected result:** `gh pr diff --name-only` lists only `apps/fourth-coffee/values.yaml`, and the PR merges. If a branch check blocks the merge, don't disable it. That check is another enforcement point; note it and see [failure/recovery troubleshooting](#the-seeded-failure-does-not-match-or-recovery-is-stuck).
+
 Now have Argo CD pick up the merge, using the same commands as Module 4:
 
 ```bash
@@ -1759,7 +1862,7 @@ kubectl --context "$CONTROL_CONTEXT" -n argocd get application "$APP_NAME" -o js
 
 If this prints nothing, Argo CD is mid-retry and hasn't recorded the results yet. Wait 15 seconds and rerun it.
 
-**Expected result:** one line each for `concierge`, `ops-agent`, and `fourth-coffee-mcp`, each containing `admission webhook "validation.gatekeeper.sh" denied the request`, a rule named `azurepolicy-k8sazurev2containernolatestima-...`, and `Avoiding the latest tag for container`. That is the AKS Deployment Safeguards rule against `latest` images. An image-pull error or a different rule name means something else went wrong; see [failure/recovery troubleshooting](#the-seeded-failure-does-not-match-or-recovery-is-stuck).
+**Expected result:** one line each for `concierge`, `ops-agent`, and `fourth-coffee-mcp`, each containing `admission webhook "validation.gatekeeper.sh" denied the request`, a rule named `azurepolicy-k8sazurev2containernolatestima-...`, and `Avoiding the latest tag for container`. The message also says `[Implied by gatekeeper-expand-workloads]`: Gatekeeper checks the pods that each Deployment would create, so the Deployment is rejected before any pod is replaced. That is the AKS Deployment Safeguards rule against `latest` images. An image-pull error or a different rule name means something else went wrong; see [failure/recovery troubleshooting](#the-seeded-failure-does-not-match-or-recovery-is-stuck).
 
 The same message appears in the Argo CD UI at `https://localhost:8443`: open `fourth-coffee` and select the sync status.
 
@@ -1771,6 +1874,8 @@ kubectl --context "$AKS_CONTEXT" -n "$TEAM" get deployments \
 ```
 
 **Expected result:** all three are ready and still run `ghcr.io/pauldotyu/fourth-coffee@sha256:...`, the digest-pinned image. `http://beans.localhost:8080` still works. A bad change was blocked, and nothing went down.
+
+Admission works per object, not per sync. Only the three Deployments violate the policy, so the rest of the chart can still be applied: the ConfigMap `app-config`, for example, can now carry `APP_VERSION: "latest"`. The recovery PR sets it back along with the image tag.
 
 In the worksheet, record the rule name, the field that caused it (`image.tag` in `values.yaml`), and the fix: restore the locked tag through Git.
 
@@ -1784,22 +1889,32 @@ The approved tag lives in the lab's artifact lock. Create a recovery branch and 
 cd "$LAB_ROOT/app-deploy"
 git checkout main && git pull origin main
 git checkout -b restore-image-tag
-TAG="$(jq -r '.application.imageTag' "$LAB_ROOT/config/artifact-lock.json")"
-echo "Approved tag: $TAG"
-sed -i.bak "s/^  tag: \"latest\"\$/  tag: \"$TAG\"/" "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
-git diff
+TAG="$(jq -er '.application.imageTag' "$LAB_ROOT/config/artifact-lock.json")" &&
+  echo "Approved tag: $TAG" &&
+  sed -i.bak "s/^  tag: \"latest\"\$/  tag: \"$TAG\"/" "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
+git --no-pager diff
 ```
 
-**Expected result:** `Approved tag:` followed by the verified tag in `config/artifact-lock.json`, and the diff changes one line from `tag: "latest"` back to that tag.
+**Expected result:** `Approved tag:` followed by the verified tag in `config/artifact-lock.json`, and the diff changes one line from `tag: "latest"` back to that tag. If the lookup fails, the `sed` does not run and the diff is empty. Stop and ask a proctor; do not guess a tag.
 
-Commit, review, and merge the fix:
+Commit the fix and open the PR:
 
 ```bash
 git add "apps/$APP_NAME/values.yaml"
 git commit -m "fix: restore the approved image tag"
 git push -u origin restore-image-tag
 gh pr create --fill
+```
+
+Wait for `gh` to finish, then list the files in the PR:
+
+```bash
 gh pr diff --name-only
+```
+
+Then merge:
+
+```bash
 gh pr merge --merge --delete-branch
 ```
 
@@ -1947,7 +2062,7 @@ If your own run was blocked, describe the blocker honestly and state whether you
 
 ### 2. Propose a bounded improvement or experiment
 
-Describe what would change for the developer. Reuse the pilot team, owner, and non-goals from Module 1 rather than creating another planning document.
+Describe what would change for the developer. Reuse the owner and non-goals from Module 1, and name the pilot team (in this lab, the `beans` team), rather than creating another planning document.
 
 Keep the first milestone small enough to evaluate. For example, test whether clearer fulfillment status helps a pilot team resolve a waiting request without asking the platform team to inspect controller logs. This is an illustrative hypothesis, not a claim about your run.
 
@@ -1982,7 +2097,7 @@ Share selected milestone statements and the evidence that would change them. Exp
 
 Save the worksheet with relevant PR/revision references and **independent**, **assisted**, **demonstration-only**, or **blocked** results. Record technical evidence that is still pending rather than silently counting it as complete. Preserve the distinction between a profile-file PR and a no-change repeat request, a builder's model evidence and proof of authorization isolation, and configured resources and measured usage.
 
-The worksheet is your take-home artifact. Use the prepared Skillable file-transfer instructions to save its non-sensitive contents. Do not export credentials, token caches, kubeconfigs, Terraform state, shell history, or raw telemetry.
+The worksheet is your take-home artifact. To keep a copy of its non-sensitive contents, open `answers/product-brief.md` in VS Code and press **Ctrl+S**. Then select all (**Ctrl+A**), copy (**Ctrl+C**), and paste the text into a note or message on your own computer; the lab's clipboard carries text out of the lab. Check that the paste worked before you end the lab. Do not export credentials, token caches, kubeconfigs, Terraform state, shell history, or raw telemetry.
 
 ## Checkpoint
 
@@ -2054,29 +2169,29 @@ Independent, assisted, demonstration-only, and blocked results should stay disti
 - This is a development capability in an isolated lab, not a production-ready multi-tenant platform. It does not establish application production sizing, adversarial tenant isolation, production delivery improvements, or measured cost savings.
 - The shared model, workspace, and controllers were prepared. Your request created a separate identity, federation, and model-access assignment per agent, and the Application Insights resource alongside its namespace. This does not implement the full joiner/mover/leaver lifecycle of a real application team.
 - A production monitoring access boundary needs its own verified permission tests. A builder's successful query or a filtered dashboard cannot substitute for them. This lab has no restricted-viewer identity or foreign-data fixtures. The telemetry-publisher grants enable ingestion, and the requester's Monitoring Reader grant does not by itself prove isolation.
-- The pinned Fourth Coffee artifact authenticates model calls and cloud OTLP ingestion through workload identity, with separate role assignments. Its release capability is not proof that the assigned environment exported successfully: retain the fresh model-call evidence and complete the setup guide's live checks. Endpoint URLs and routing attributes do not authorize reading telemetry. Backstage's guest session and static catalog owners likewise do not implement production user authorization.
+- The pinned Fourth Coffee artifact authenticates model calls and cloud OTLP ingestion through workload identity, with separate role assignments. Its release capability is not proof that your environment exported successfully: retain the fresh model-call evidence from Module 3. Endpoint URLs and routing attributes do not authorize reading telemetry. Backstage's guest session and static catalog owners likewise do not implement production user authorization.
 - These boundaries do not make the capability less useful. They make its supported promise clear and identify what a production adoption would need to evaluate.
 
 ## End the session
 
-Save the non-sensitive worksheet at `$LAB_ROOT/answers/product-brief.md`.
+Save the non-sensitive worksheet at `$LAB_ROOT/answers/product-brief.md` (press **Ctrl+S**).
 
-Follow the prepared Skillable transfer instructions if you want a copy. Organizers manage local-service shutdown and Azure cleanup; use their session-end instructions.
+If you want a copy, follow the take-home steps near the end of [Module 6](#module-6-plan-the-next-platform-milestone). Organizers manage local-service shutdown and Azure cleanup; use their session-end instructions.
 
-For both paths, cleanup follows resource ownership: remove the application environment through its controller before destroying the shared foundation. Do not manually delete the namespace, Workspace, identity, role assignments, or OpenTofu state backend out of order. Removing controller state too early can leave resources or permissions behind.
+Cleanup follows resource ownership: remove the application environment through its controller before destroying the shared foundation. Do not manually delete the namespace, Workspace, identity, role assignments, or OpenTofu state backend out of order. Removing controller state too early can leave resources or permissions behind.
 
-## Optional take-home exploration
+## Optional follow-ups
 
-These are optional follow-ups, not unfinished core lab requirements:
+These are optional, not unfinished core lab requirements:
 
-- Vend a second environment, `beans-prod`, from one Backstage form in the [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage). It is the clearest way to see the golden path repeat.
+- If at least 35 minutes remain on the lab timer after Module 6, vend a second environment, `beans-prod`, from one Backstage form in the [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage). It is the clearest way to see the golden path repeat, and it needs your live lab, so it can't be done after the lab ends.
 - Refine the recovery guide improvement you recorded. Evaluate whether it makes the source and correction clearer to a developer.
 - Revisit the next milestone with a pilot team and collect the baseline you defined.
 - If organizers supplied `evidence/production-events.csv`, practice distinguishing production delivery measures from environment-provisioning and workshop events. Respect its synthetic or sanitized provenance.
 - Review the setup guide to understand what must be maintained outside the developer-facing path.
 - Explore the pinned [Fourth Coffee source](https://github.com/pauldotyu/fourth-coffee/tree/969ca1acae851d0ef3cb60619d5e0d6e90523fda) to relate the supplied workload to its local and Kubernetes layouts. This is optional source study, not a required image build.
 
-Do not turn these into extra in-session PRs or consume the protected breaks to complete them.
+Do not use the protected breaks for these. The `beans-prod` exercise is the only item here that opens PRs, and only while time remains on the lab timer.
 
 ## Reference material
 
@@ -2099,7 +2214,7 @@ Backstage, Argo CD, Crossplane, and AKS are the vehicle. The real value is in th
 
 # Optional: vend the next environment from Backstage
 
-**Duration:** about 25 minutes, most of it waiting for Azure. This exercise is optional. Do it after you finish Modules 1 to 7, never in place of a module or a break.
+**Duration:** about 25 minutes, most of it waiting for Azure. This exercise is optional. Do it after you finish Modules 1 to 6, only if at least 35 minutes remain on the lab timer, and never in place of a module or a break.
 
 ## Objectives
 
@@ -2111,7 +2226,7 @@ By the end of this exercise, you will be able to:
 
 > [!knowledge] **Platform concept: a golden path is the path you can repeat.** In Modules 2 and 3 you built the first environment by hand: a contract change, a request file, a binding, and a configuration PR. A platform earns its keep when the next team, or the next environment for the same team, needs none of that knowledge. In the BACK stack, **Backstage** collects the intent, **Argo CD** applies the request and delivers the app, **Crossplane** composes the environment, and **Kubernetes** runs it. The form is new. Nothing behind it is.
 
-**Starting state:** you finished Module 5, so `fourth-coffee` runs healthy in `beans`. Backstage (`http://localhost:3000`), the Argo CD tunnel (`https://localhost:8443`), and the application tunnel are running. If any stopped, restart it as shown in [Start Backstage and Argo CD](#start-backstage-and-argo-cd).
+**Starting state:** you finished Modules 1 to 6, so `fourth-coffee` runs healthy in `beans`. Backstage (`http://localhost:3000`), the Argo CD tunnel (`https://localhost:8443`), and the application tunnel are running. If any stopped, restart it as shown in [Start Backstage and Argo CD](#start-backstage-and-argo-cd) or, for the application tunnel, [Module 3, step 6](#6-open-the-application-through-the-gateway). `make app` runs the same commands as step 6.
 
 You create a second environment, `beans-prod`, for a second copy of the same application, `fourth-coffee-prod`. In this lab it uses the same `ai-dev` namespace class and the same approved image. A real production class would usually add stricter policy, approvals, or a separate cluster, and a real golden path would often scaffold source code and CI as well. This exercise skips both to stay within the approved, prebuilt workload.
 
@@ -2126,8 +2241,8 @@ The **AI application environment** template in Backstage implements this path. I
 | **1. Intent**  | `fetch:template`              | Authors `requests/<namespace>.yaml` and the catalog entry.                |
 | **2. Tuning**  | `fetch:template`              | Authors `apps/<application>/values.yaml` with the correct contract names. |
 | **3. Sizing**  | `fetch:plain:file`            | Copies the approved `profile.yaml` for the chosen resource class.         |
-| **4. Request** | `publish:github:pull-request` | Opens a PR in **platform** to trigger the environment provisioning.       |
-| **5. Config**  | `publish:github:pull-request` | Opens a PR in **app-deploy** to provide the app's configuration.          |
+| **4. Config**  | `publish:github:pull-request` | Opens a PR in **app-deploy** to provide the app's configuration.          |
+| **5. Request** | `publish:github:pull-request` | Opens a PR in **platform** to trigger the environment provisioning.       |
 
 Because the golden path is a series of Git operations, every environment has an audit trail, and the developer never needs to know where the files live or how they are named.
 
@@ -2159,20 +2274,25 @@ az ad signed-in-user show --query id -o tsv
 
 ### 3. Request the environment
 
-Open `http://localhost:3000/create/templates/default/app-environment`. You can also find **AI application environment** on the **Create** page. If it is missing, open `http://localhost:3000/catalog/default/template/app-environment` and select **Refresh** on the **About** card.
+Open +++http://localhost:3000/create/templates/default/app-environment+++. You can also find **AI application environment** on the **Create** page. If it is missing, open +++http://localhost:3000/catalog/default/template/app-environment+++ and select **Refresh** on the **About** card.
 
-Fill in the form:
+The form has three pages: **Environment**, **Access and resources**, and **Review**. Fill in the **Environment** page, then select **Next**:
 
-| Field                 | Value                | Why                                                                                  |
-| --------------------- | -------------------- | ------------------------------------------------------------------------------------ |
-| Environment namespace | `beans-prod`         | Names the managed namespace, its Azure resources, and `beans-prod.localhost`         |
-| Application name      | `fourth-coffee-prod` | Names the Argo CD Application and the `apps/` folder. Must not reuse `fourth-coffee` |
-| Owning team           | `beans`              | The catalog owner                                                                    |
-| Cost center           | `CC-1043`            | A different cost center, so you can see attribution separate the two                 |
-| Your Entra object ID  | the GUID from step 2 | AKS desktop and telemetry access                                                     |
-| Resource profile      | `standard`           | The approved profile, chosen up front this time                                      |
+| Field                 | Value                    | Why                                                                                  |
+| --------------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| Environment namespace | +++beans-prod+++         | Names the managed namespace, its Azure resources, and `beans-prod.localhost`         |
+| Application name      | +++fourth-coffee-prod+++ | Names the Argo CD Application and the `apps/` folder. Must not reuse `fourth-coffee` |
+| Owning team           | `beans`                  | The catalog owner. Pick it from the list.                                            |
+| Cost center           | +++CC-1043+++            | A different cost center, so you can see attribution separate the two                 |
 
-Select **Review**, check the values, then select **Create**.
+On the **Access and resources** page, fill in the following, then select **Review**:
+
+| Field                | Value                | Why                                             |
+| -------------------- | -------------------- | ----------------------------------------------- |
+| Your Entra object ID | the GUID from step 2 | AKS desktop and telemetry access                |
+| Resource profile     | `standard`           | The approved profile, chosen up front this time |
+
+On the **Review** page, check the values, then select **Create**. If you mistype a value, see [If you need to start over](#if-you-need-to-start-over).
 
 **Expected result:** within a minute all five steps complete and four buttons appear: the two PRs (numbered in merge order), **Follow application delivery in Argo CD**, and **Open the application**. Backstage opened both PRs. It merged neither.
 
@@ -2191,6 +2311,11 @@ gh pr diff backstage/fourth-coffee-prod-config
 
 ```bash
 gh pr merge backstage/fourth-coffee-prod-config --merge --delete-branch
+```
+
+When `gh` finishes, check for the environment's Argo CD Application:
+
+```bash
 kubectl --context "$CONTROL_CONTEXT" -n argocd get application fourth-coffee-prod
 ```
 
@@ -2207,32 +2332,49 @@ gh pr diff backstage/beans-prod-environment --name-only
 gh pr diff backstage/beans-prod-environment
 ```
 
-**Expected result:** two new files, `catalog/fourth-coffee-prod.yaml` and `requests/beans-prod.yaml`. In the request, `team` is `beans-prod`, `costCenter` is `CC-1043`, and `requesterObjectId` is your GUID. If anything else changed, do not merge. Then merge it and ask Argo CD to check for the request now:
+**Expected result:** two new files, `catalog/fourth-coffee-prod.yaml` and `requests/beans-prod.yaml`. In the request, `team` is `beans-prod`, `costCenter` is `CC-1043`, and `requesterObjectId` is your GUID. If anything else changed, do not merge. Then merge it:
 
 ```bash
 gh pr merge backstage/beans-prod-environment --merge --delete-branch
+```
+
+When `gh` finishes, ask Argo CD to check for the request now:
+
+```bash
 kubectl --context "$CONTROL_CONTEXT" -n argocd annotate application platform-requests argocd.argoproj.io/refresh=normal --overwrite
 ```
 
 ### 6. Wait for fulfillment
 
-This is the same chain you traced in Module 2. Expect about 6 to 7 minutes for the environment, then a few minutes for the first rollout.
+This is the same chain you traced in Module 2. Expect about 2 to 7 minutes for the environment, then a few minutes for the first rollout. The first command waits for Argo CD to apply the request, so the later waits don't fail with `NotFound`.
 
 ```bash
+kubectl --context "$CONTROL_CONTEXT" wait --for=create appenvironment/beans-prod --timeout=300s
 kubectl --context "$CONTROL_CONTEXT" wait --for=condition=Ready appenvironment beans-prod --timeout=15m
+kubectl --context "$CONTROL_CONTEXT" -n argocd wait --for=create application/fourth-coffee-prod --timeout=300s
 kubectl --context "$CONTROL_CONTEXT" -n argocd wait application/fourth-coffee-prod --for=jsonpath='{.status.health.status}'=Healthy --timeout=600s
 for d in concierge ops-agent fourth-coffee-mcp; do
   kubectl --context "$AKS_CONTEXT" -n beans-prod rollout status deployment/"$d" --timeout=300s
 done
 ```
 
-**Expected result:** `condition met` twice, then `successfully rolled out` for all three Deployments. If the first wait times out, use [environment request is merged but not ready](#environment-request-is-merged-but-not-ready). If `fourth-coffee-prod` is missing or reports `values.yaml: no such file or directory`, check that the configuration PR from step 4 merged.
+**Expected result:** `condition met` four times, then `successfully rolled out` for all three Deployments. The platform creates the `fourth-coffee-prod` Application only after the environment's baseline is ready, so it is not there at first.
+
+If a wait times out, check `beans-prod` itself. The commands in [environment request is merged but not ready](#environment-request-is-merged-but-not-ready) use `$APP_ENV` and `$TEAM`, which name `beans-dev`, so run these instead:
+
+```bash
+kubectl --context "$CONTROL_CONTEXT" get appenvironment beans-prod
+kubectl --context "$CONTROL_CONTEXT" -n crossplane-system get workspaces.opentofu.m.upbound.io beans-prod
+kubectl --context "$AKS_CONTEXT" -n beans-prod get resourcequota,networkpolicy,serviceaccount,configmap
+```
+
+Do not `export APP_ENV=beans-prod` or `export TEAM=beans-prod` to reuse those commands: `make connect` saves exported overrides into `lab.env`, and every later command in this guide would then point at `beans-prod`. If `fourth-coffee-prod` reports `values.yaml: no such file or directory`, check that the configuration PR from step 4 merged.
 
 You did not read a binding, fill a blank, or open a third PR.
 
 ### 7. Use the new environment
 
-Open `http://beans-prod.localhost:8080` in your browser. The same application tunnel serves both environments, because each HTTPRoute matches its own host. Start a chat to confirm the model call works with the new environment's identity.
+Open +++http://beans-prod.localhost:8080+++ in your browser. The same application tunnel serves both environments, because each HTTPRoute matches its own host. Start a chat to confirm the model call works with the new environment's identity.
 
 In Backstage, open **Catalog**. Within a few minutes `fourth-coffee-prod` appears next to `fourth-coffee`, owned by `beans`, with links to the app, its Argo CD Application, and its configuration folder.
 
@@ -2244,10 +2386,11 @@ Same pattern, separate resources. Run each check and compare the two rows:
 kubectl --context "$AKS_CONTEXT" get namespace beans beans-prod -L platform.prel37.example/cost-center
 az resource list -g "$AKS_RESOURCE_GROUP" \
   --query "[?tags.team=='beans' || tags.team=='beans-prod'].{name:name, team:tags.team, costCenter:tags.\"cost-center\"}" -o table
-kubectl --context "$CONTROL_CONTEXT" -n argocd get appprojects beans-dev beans-prod
+kubectl --context "$CONTROL_CONTEXT" -n argocd get appprojects beans-dev beans-prod \
+  -o custom-columns='NAME:.metadata.name,NAMESPACE:.spec.destinations[*].namespace'
 ```
 
-**Expected result:**
+**Expected result:** the last command shows the one namespace each AppProject can deploy to. Compare the rest of the checks in this table:
 
 | Check                 | `beans-dev`                                                                | `beans-prod`                                                                         |
 | --------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -2259,6 +2402,26 @@ kubectl --context "$CONTROL_CONTEXT" -n argocd get appprojects beans-dev beans-p
 
 Each environment has its own identity, telemetry, quota, cost attribution, and delivery boundary, all from one contract. A model call from `beans-prod` lands in its own Application Insights resource, not in the one you queried in Module 3.
 
+<a id="if-you-need-to-start-over"></a>
+
+### If you need to start over
+
+If you mistype a value in the form, or the task stops partway, don't submit the form again yet: the task stops on the branches it already created. If you have **not** merged either PR, close both PRs and delete their branches, then submit the form again. Start with the app-deploy PR:
+
+```bash
+cd "$LAB_ROOT/app-deploy"
+gh pr close backstage/fourth-coffee-prod-config --delete-branch
+```
+
+Then the platform PR:
+
+```bash
+cd "$LAB_ROOT/platform"
+gh pr close backstage/beans-prod-environment --delete-branch
+```
+
+If `gh` says there is no pull request for a branch, the task stopped before it opened that PR. Delete the leftover branch with `git push origin --delete <branch>`, using the branch name from the command above. If you already merged either PR, ask a proctor before you continue.
+
 ## Debrief: what did the second environment cost?
 
 Count what you did for `beans-dev` in Modules 2 and 3 against what you did here. The first time took a contract change, a request file, a binding lookup, a blank, and two PRs written by hand. This time took one form and two reviews. The difference is the developer toil the platform removed.
@@ -2269,7 +2432,7 @@ Then look at what stayed the same: the request is still a reviewed PR, the platf
 
 ## Clean up
 
-`beans-prod` runs three more Deployments and keeps its own Azure resources, so it adds cost while it exists. Organizers remove it together with the rest of the lab. Do not delete the namespace, identity, or Application Insights resource by hand.
+`beans-prod` runs three more Deployments and keeps its own Azure resources, so it adds cost while it exists. Organizers remove it together with the rest of the lab. Do not delete the namespace, identity, or Application Insights resource by hand. Deleting `requests/beans-prod.yaml` from Git does not remove the environment either, because the root Applications don't prune. If you stop before you merge both PRs, close them as shown in [If you need to start over](#if-you-need-to-start-over).
 
 ===
 
@@ -2279,7 +2442,7 @@ Then look at what stayed the same: the request is still a reviewed PR, the platf
 
 Use this reference when a module checkpoint does not match. Each section names the symptom, explains why it usually happens, and gives the smallest safe fix. The pattern mirrors real platform operations: find the last stage that worked, observe the next one, and repair through the owning path (Git, the controller, or the setup operator) instead of patching around it. It is not an additional exercise or permission to broaden platform access. Module 2's documented wiring is platform-author work; installation and credential repair remain setup responsibilities.
 
-Ask a proctor for help with setup, credentials, or an unresolved checkpoint. Organizers manage the assigned VM, accounts, and local services.
+Ask a proctor for help with setup, credentials, or an unresolved checkpoint. Organizers manage the assigned VM and accounts. You start and restart the local services yourself.
 
 ## Start with context and the last successful stage
 
@@ -2314,11 +2477,44 @@ Join the debrief when the practice window ends and use catch-up time for the rem
 
 Initialize the new terminal using the [overview commands](#open-the-prepared-workspace). On Windows, use Ubuntu WSL rather than PowerShell. Use the assigned VM.
 
-Contact the proctor for missing configuration or services. Organizers own startup, local tunnels, authentication renewal, and VM personalization.
+You start the local services yourself, so restart a stopped one from a WSL terminal. Each service runs in its own terminal and stops when that terminal closes, when the VM or WSL restarts, or when its tunnel drops, for example when `port-forward` reports `lost connection to pod`. Load your environment first:
+
+```bash
+cd "$HOME/prel37/setup"
+source "$HOME/prel37/config/lab.env"
+```
+
+Then run only the command for the service that stopped. Each command stays in the foreground, so leave its terminal open.
+
+Backstage, at `http://localhost:3000`:
+
+```bash
+make backstage
+```
+
+The Argo CD tunnel, at `https://localhost:8443` (it prints the `admin` password again):
+
+```bash
+make argocd
+```
+
+The application tunnel, at `http://beans.localhost:8080` (from Module 3):
+
+```bash
+make app
+```
+
+If one reports `address already in use`, a stale process still holds the port. Find it, stop it with `kill <PID>` using the process ID shown, and run the command again:
+
+```bash
+ss -ltnp | grep -E ':(3000|7007|8443|8080) '
+```
+
+Ask a proctor for missing configuration, or if restarting a service does not fix it. Organizers own VM personalization and the Azure foundation.
 
 Expected endpoints are Backstage's guest UI at `http://localhost:3000` with backend `http://localhost:7007`, and Argo CD's local-account UI at `https://localhost:8443`. GitHub browser login is not a login to either service.
 
-Keep the supplied runtime and service names and bind only to loopback. For a certificate warning, ask a proctor; do not bypass an unexpected TLS error. Do not substitute personal credentials for their assigned accounts.
+Keep the supplied runtime and service names and bind only to loopback. The certificate warning at `https://localhost:8443` is expected: accept it, as in setup. For any other TLS error, ask a proctor; do not bypass it. Do not substitute personal credentials for the assigned accounts.
 
 The application URL `http://beans.localhost:8080` is expected not to work before Module 3. That is different from an unavailable Backstage or Argo CD link at arrival. Its tunnel goes to the shared Gateway's ClusterIP service so that the HTTPRoute is still tested; do not substitute direct forwarding to an application pod or add custom DNS/public ingress.
 
@@ -2338,7 +2534,22 @@ There is no automatic merge or approval to wait for. Review the allowed diff and
 
 Argo CD, Backstage, and provider-opentofu have separately prepared repository credentials. A successful Git push from your terminal does not prove any of them can fetch a private repository. Use the dedicated, repository-scoped tokens from setup rather than substituting your general GitHub login credential.
 
-For expired or missing credentials, ask organizers for repair. Preserve exercise edits, update only the affected credentials and Secrets, and restart Backstage so it reloads the token. Repository creation and initial file copying are not part of renewal.
+If a GitHub token expires or goes missing, create a replacement the same way as in [Set up GitHub tokens](#set-up-github-tokens), with the same repositories and permissions. Then overwrite its saved file and apply it again. `make auth` reuses the saved files, so running it alone does not replace a token. This example replaces the Backstage token; use `read-token` instead for the read token:
+
+```bash
+source "$HOME/prel37/config/lab.env"
+read -rsp "New Backstage token: " NEW_TOKEN; echo
+```
+
+Paste the new token and press **Enter**. Then save it and apply it:
+
+```bash
+printf '%s\n' "$NEW_TOKEN" > "$LAB_ROOT/.credentials/backstage-token"
+unset NEW_TOKEN
+cd "$HOME/prel37/setup" && make auth
+```
+
+After a Backstage token change, stop `make backstage` with **Ctrl+C** in its terminal and run it again so it reloads the token. Preserve exercise edits. Repository creation and initial file copying are not part of renewal.
 
 <a id="platform-wiring-or-request-api-is-not-ready"></a>
 
@@ -2370,9 +2581,9 @@ kubectl --context "$CONTROL_CONTEXT" get crd \
   appenvironments.platform.prel37.example --ignore-not-found -o name
 ```
 
-**Expected result at the wiring checkpoint:** three Synced roots and an Established request CRD, using the waits in Module 2. An empty last result means the CRD has not been created, not that there are zero requests. Authorization or connection errors are not absence. If Argo has not delivered the XRD, inspect its repository/project/sync error first; if the XRD is delivered but the CRD is not established, inspect Crossplane's definition status with a proctor.
+**Expected result at the wiring checkpoint:** two Synced roots (`platform-system` and `platform-requests`) and an Established request CRD, using the waits in Module 2. An empty last result means the CRD has not been created, not that there are zero requests. Authorization or connection errors are not absence. If Argo has not delivered the XRD, inspect its repository/project/sync error first; if the XRD is delivered but the CRD is not established, inspect Crossplane's definition status with a proctor.
 
-Repeat only the failed wiring step for the same instance once its cause is resolved. The pinned apply commands do not overwrite local exercise edits, and existing roots may resume published work immediately. Do not delete a namespace or reset state to reproduce a fresh checkpoint. If credentials are expired, use the setup renewal procedure rather than copying a learner PAT into a controller. Successful wiring alone does not test module retrieval or state authorization; those occur when the Workspace runs.
+Repeat only the failed wiring step for the same instance once its cause is resolved. The pinned apply commands do not overwrite local exercise edits, and existing roots may resume published work immediately. Do not delete a namespace or reset state to reproduce a fresh checkpoint. If credentials are expired, renew the tokens as described in [Git has unexpected changes or a check fails](#git-has-unexpected-changes-or-a-check-fails) rather than copying a learner PAT into a controller. Successful wiring alone does not test module retrieval or state authorization; those occur when the Workspace runs.
 
 If stopping before or during wiring, tell a proctor; organizers handle cleanup. Do not install the missing API merely to tear down an unused environment.
 
@@ -2406,50 +2617,13 @@ kubectl --context "$AKS_CONTEXT" \
 
 Distinguish a rejected request, pending Azure provisioning, failed provider execution, and missing baseline. The correction depends on which stage failed.
 
-If the Workspace is ready but the baseline reports a missing `monitor.azure.com/Instrumentation` API, the delivered baseline chart expects in-cluster collection. The direct-export baseline does not create that resource. Follow [the existing-lab migration](#migrate-an-existing-lab-to-direct-otlp), not an installation of AKS application monitoring or a stand-alone CRD. If the Workspace has no `otlp` output, the Composition waits rather than publishing an incomplete native-export binding.
+If the Workspace is ready but the baseline reports a missing `monitor.azure.com/Instrumentation` API, the delivered baseline chart expects in-cluster collection. The direct-export baseline does not create that resource, so your lab image is out of date. Stop and ask a proctor; do not install AKS application monitoring or a stand-alone CRD. If the Workspace has no `otlp` output, the Composition waits rather than publishing an incomplete native-export binding.
 
 If the provider cannot retrieve its module, local files and GitHub login are not a substitute. Provider pods on the control cluster use their own authenticated remote source, pinned to `EnvironmentConfig/prel37`'s `data.moduleRevision`, and their own state backend. Setup initially pins the first platform commit. The remote module's configuration is `opentofu/managed-namespace/main.tf`, with provider selections in the adjacent `.terraform.lock.hcl`, separate from `infra/main.tf` and its state. Do not create companion variable/output files or run a local plan/apply to repair a controller problem.
 
 If `beans` already exists unexpectedly on a fresh first pass, stop. Do not adopt it or delete it manually. When resuming an already completed request on the same instance, that namespace is expected: inspect the existing request, Workspace, and state instead of trying to vend a second environment. The approved path owns its lifecycle.
 
 The controller owns the managed namespace, per-agent identities and federation, model and DCR-publisher assignments, and Application Insights resource; Argo CD delivers the baseline from their outputs. A provisioning error can prevent baseline creation even when the namespace exists. Inspect the Workspace error rather than inserting an identity, endpoint, or token manually. A denied `telemetry_access` assignment needs the setup operator to check the bootstrap's constrained telemetry-publisher delegation on the generated DCR's subscription. Learners do not add IAM permissions. Authorization-isolation testing remains outside this lab.
-
-<a id="migrate-an-existing-lab-to-direct-otlp"></a>
-
-### Migrate an existing lab to direct OTLP
-
-**Setup-operator work.** Use this when an initialized lab's platform repository or execution pin lacks the direct OTLP export path in this source. Updating this source checkout does not update an initialized private platform repository or its saved execution pin. Keep the current request, namespace, Workspace, state backend, and learner changes.
-
-1. Have the bootstrap operator review and apply the current `infra/main.tf` using the existing bootstrap state. The provisioner needs the constrained `Monitoring Metrics Publisher` delegation because the DCR lives in an Azure-managed resource group. Do not grant subscription Owner or ask learners to create role assignments. This application path does not require AKS `appMonitoring`; omission from an update payload alone does not prove that an enabled feature is disabled.
-2. Merge the reviewed changes to `api/composition.yaml`, `opentofu/managed-namespace/main.tf`, and both charts into the lab's private platform repository. Preserve exercise edits, including the required cost-center field. The module removes only the cluster DCR association used by in-cluster collection, retains the Application Insights resource and managed ingestion resources, and adds agent publisher grants. Do not delete the Workspace or edit state.
-3. Update `data.moduleRevision` in the saved `$LAB_ROOT/config/environment.yaml` to that full merged commit SHA, then apply that file with the same control context used in Module 2. Both the module and charts use this pin. The Composition arrives from `main` first and tolerates outputs without `otlp`, but the native-export contract stays unready until the updated module produces `otlp`.
-4. Inspect Workspace conditions and the baseline's sync error. The module rejects a DCR without direct OTLP data sources or a single metrics stream rather than guessing a URL. Compare the vended URLs with the resource's **OTLP Connection Info** before the first live rehearsal. Repeat Module 2's baseline, HTTPS-endpoint, and binding checks. No `Instrumentation` resource or node-receiver wait is expected.
-5. Before deploying or resuming the app, check the [pinned Fourth Coffee artifacts](https://github.com/pauldotyu/ignite26-PREL37/blob/main/setup/README.md#application-artifact-prerequisite). Release `0.1.0-12.1.ge412f12` includes token renewal; an exporter-selection-only image or a static token does not. Apply the reviewed adapter, image schema, staged values, and artifact lock together. Update existing app-deploy values through a PR so Module 5's recovery restores that same image.
-6. If existing pods still hold stale environment variables after the approved image and baseline are delivered, perform a controlled restart of `concierge` and `ops-agent` to reload the ConfigMap. Then send a fresh chat and prove the model dependency in `OTelSpans`. Do not treat a green AppEnvironment or historical trace as proof that native export works.
-
-<a id="switch-an-existing-lab-to-fourth-coffee"></a>
-
-### Switch an existing lab to Fourth Coffee
-
-**Setup-operator work.** The source defaults use team `beans`, request `beans-dev`, and application `fourth-coffee`, but an initialized environment must not be reset merely to rename the demo. An initialized lab may use other names, such as `scoops` and `scoops-dev`. Keep its existing team, namespace, request, Azure resources, and state in place; Kubernetes namespaces are not renamed by editing a lab example.
-
-First read the existing application identifier:
-
-```bash
-source "$LAB_ROOT/config/lab.env"
-APP_NAME="$(kubectl --context "$CONTROL_CONTEXT" get appenvironment "$APP_ENV" \
-  -o jsonpath='{.spec.application}')"
-export APP_NAME
-```
-
-Keep that request's `metadata.name`, `spec.team`, and `spec.application`. The application identifier also names the composed Argo CD Application and `apps/$APP_NAME/`; renaming it can replace controller-owned delivery objects. `make connect` preserves the saved team, application, and request names unless you explicitly override them. A fresh lab uses the default names, while an existing identifier can continue delivering the Fourth Coffee image. Do not change an existing `spec.team` or request name merely to match the examples.
-
-1. Merge the reviewed `charts/fourth-coffee` adapter, API changes, and approved profiles into the private platform repository, preserving the learner's schema edits. Set the existing request's `spec.chart` to `fourth-coffee` through Git.
-2. Keep the catalog component's identifier, owning group, delivery link, and the local Backstage guest ownership reference aligned with the existing environment. Update the application description to Fourth Coffee without replacing the team or introducing a second delivery Application. Fresh catalogs and guest configuration use `group:default/beans`; an initialized catalog can retain its existing owner.
-3. Advance `data.moduleRevision` in the saved `$LAB_ROOT/config/environment.yaml` to the full merged platform commit and apply that mapping as in Module 2. The Composition arrives from `main`; the chart and module remain pinned. Finish the pin update before treating an intermediate missing-chart error as a new provisioning problem. If the lab also lacks direct OTLP export, complete [that migration](#migrate-an-existing-lab-to-direct-otlp), including the bootstrap's publisher delegation.
-4. In `apps/$APP_NAME/values.yaml`, update the approved image tag to `0.1.0-12.1.ge412f12`. Rename the profile's MCP key to `fourthCoffeeMcp` while preserving its selected `small` or `standard` resources. Replace any explicit MCP endpoint override with `FOURTH_COFFEE_MCP_URL` pointing to `http://fourth-coffee-mcp:8101/mcp/`. Submit and merge these changes through the existing app-deploy repository.
-5. Update the prepared `config/artifact-lock.json` application's metadata from the verified source lock, keeping unrelated artifact selections intact. Refresh the staged exercise values and profile deliberately; re-running setup does not overwrite initialized files.
-6. Verify `fourth-coffee-mcp`, `ops-agent`, and `concierge` are ready and use the pinned digest. Argo CD's normal pruning removes superseded application-owned resources; do not manually remove the namespace, Workspace, identities, or state. The shared Gateway and `http://beans.localhost:8080` route stay unchanged. Send a fresh coffee request and prove its successful model call before continuing.
 
 ### Provider initialization fails
 
@@ -2467,7 +2641,23 @@ kubectl --context "$CONTROL_CONTEXT" get environmentconfigs.apiextensions.crossp
   -o jsonpath='{.data.moduleRevision}{"\n"}'
 ```
 
-The provider may compress the full OpenTofu error into the condition message. Decode its Base64/gzip payload as data to read the diagnostic; do not execute arbitrary commands copied from error text or share credentials from logs.
+Print each condition's message to read the diagnostic. This is read-only:
+
+```bash
+kubectl --context "$CONTROL_CONTEXT" -n crossplane-system \
+  get workspaces.opentofu.m.upbound.io "$APP_ENV" \
+  -o jsonpath='{range .status.conditions[*]}{.type}={.status}: {.message}{"\n"}{end}'
+```
+
+The provider may compress the full OpenTofu error into the condition message. If a message is a long, unreadable string, decode it as data to read the diagnostic by piping the `Synced` message through `base64 -d | gunzip`. Do not execute arbitrary commands copied from error text or share credentials from logs.
+
+```bash
+kubectl --context "$CONTROL_CONTEXT" -n crossplane-system \
+  get workspaces.opentofu.m.upbound.io "$APP_ENV" \
+  -o jsonpath='{.status.conditions[?(@.type=="Synced")].message}' | base64 -d | gunzip
+```
+
+**Proctor-only recovery.** Reading the Workspace is yours to do. The recovery steps under these failures change the shared platform repository and the `EnvironmentConfig` that every environment uses, and one of them needs `tofu`, which is not installed in your lab. Note which message you see, and ask a proctor to make the correction.
 
 Distinguish these failures:
 
@@ -2507,6 +2697,23 @@ If the route fails, preserve its condition and ask the proctor to inspect the sh
 
 Unexpected injected resources or extra pods can invalidate the prepared capacity assumptions. Do not increase quota or remove limits to finish the exercise.
 
+<a id="an-argo-cd-sync-error-does-not-clear"></a>
+
+## An Argo CD sync error does not clear
+
+**Module:** any module that waits on Argo CD.
+
+**Why it happens:** automatic sync retries a failed sync a few times (five for your application, ten for the environment baseline) and then stops. It does not try the same commit again, so a transient failure, such as an Azure permission that had not propagated yet, stays as `SyncError: Failed sync attempt to <commit>` until something changes.
+
+Read the error first, in the Argo CD UI at `https://localhost:8443` or with the command below. For the baseline, use `"$APP_ENV-baseline"` instead of `"$APP_NAME"`:
+
+```bash
+kubectl --context "$CONTROL_CONTEXT" -n argocd get application "$APP_NAME" \
+  -o jsonpath='{.status.conditions[*].message}{"\n"}'
+```
+
+If the operation phase is still `Running` and its message says `Retrying attempt #N`, Argo CD is still retrying. Wait, as described in [the seeded failure](#the-seeded-failure-does-not-match-or-recovery-is-stuck). After you fix the cause of a failed sync, open the Application in Argo CD and select **Sync**, then **Synchronize**. A new merged commit also starts a fresh attempt. Do not delete the Application or patch resources to hurry it.
+
 <a id="model-evidence-is-missing-or-fallback-only"></a>
 
 ## Model evidence is missing or fallback-only
@@ -2523,7 +2730,7 @@ If ingestion is delayed, record evidence pending and return during catch-up. Do 
 
 If the model returns an authorization error, the proctor should inspect the binding, the **workload-cluster** issuer for `beans/concierge` or `beans/ops-agent` (whichever agent failed), and existing model authorization. Learners do not add a model API key or grant a broader role.
 
-Verify the [direct-export artifact prerequisite](https://github.com/pauldotyu/ignite26-PREL37/blob/main/setup/README.md#application-artifact-prerequisite) and the prepared ConfigMap with a proctor. The pinned Fourth Coffee image supports authenticated export; other images may only select an exporter. Confirm the actual running digest and `OTEL_EXPORTER_OTLP_AUTH_MODE=workload_identity` before investigating token or DCR errors. Do not substitute a classic exporter, local-auth key, or static bearer token.
+Ask a proctor to verify the pinned image in `config/artifact-lock.json` and the prepared ConfigMap. The pinned Fourth Coffee image supports authenticated export; other images may only select an exporter. Confirm the actual running digest and `OTEL_EXPORTER_OTLP_AUTH_MODE=workload_identity` before investigating token or DCR errors. Do not substitute a classic exporter, local-auth key, or static bearer token.
 
 <a id="backstage-shows-an-old-template-or-no-usable-result"></a>
 
@@ -2533,7 +2740,7 @@ Verify the [direct-export artifact prerequisite](https://github.com/pauldotyu/ig
 
 **Why it happens:** Backstage reads templates and catalog files from platform `main` on GitHub, not from your clone, refreshes them on a schedule, and acts with its own token. A missing token permission or an unmerged PR looks like stale or empty UI.
 
-If the **Application** picker is empty, or the catalog has no `beans` group or `fourth-coffee` component, the Backstage token can't read commit statuses, which the catalog needs to read `catalog/*.yaml`. Add **Commit statuses: Read-only** to the Backstage token in GitHub (the token value doesn't change), then stop and rerun `make backstage`. See [Set up GitHub tokens](#set-up-github-tokens).
+If the **Application** picker is empty, or the catalog has no `beans` group or `fourth-coffee` component, check the likelier causes first. Backstage may have started before `make auth` finished: stop it with **Ctrl+C** and run `make backstage` again. Or the catalog may not have refreshed yet: wait a few minutes and reload. If neither helps, the Backstage token may be missing **Commit statuses: Read-only**, which the catalog needs to read `catalog/*.yaml`. Add it to the Backstage token in GitHub (the token value doesn't change), then stop and rerun `make backstage`. See [Set up GitHub tokens](#set-up-github-tokens).
 
 For an old form, first confirm the change is on platform `main` in GitHub, since Backstage reads the template from there, not from your clone:
 
@@ -2547,14 +2754,22 @@ If the output still shows `enum: [small]`, the template PR has not merged; finis
 
 For a failed task, preserve the task reference and inspect whether a PR was created. Avoid repeatedly submitting the same task before checking its result.
 
-If **Propose the profile change** fails with `Resource not accessible by personal access token`, the Backstage token can push branches but not open PRs. It needs **Pull requests: Read and write** in addition to **Contents: Read and write**; see [Set up GitHub tokens](#set-up-github-tokens). After fixing the token, restart Backstage and delete the orphaned branch before you run the template again:
+If **Propose the profile change** fails with `Resource not accessible by personal access token`, the Backstage token can push branches but not open PRs. It needs **Pull requests: Read and write** in addition to **Contents: Read and write**; see [Set up GitHub tokens](#set-up-github-tokens). After fixing the token, restart Backstage and delete the orphaned branch before you run the template again. Deleting a branch also closes any PR open on it, so first check that none is open:
 
 ```bash
 cd "$LAB_ROOT/app-deploy"
-gh api -X DELETE "repos/{owner}/{repo}/git/refs/heads/backstage/$APP_NAME-profile-standard"
+: "${APP_NAME:?Run source ~/prel37/config/lab.env first}" &&
+  gh pr list --head "backstage/$APP_NAME-profile-standard"
 ```
 
-Before resubmitting, compare the current `profile.yaml` on app-repository `main` with the requested canonical profile. A repeated request for identical content can legitimately yield no new PR. Record that no-change result rather than expecting a rollout.
+If this lists nothing, delete the branch:
+
+```bash
+: "${APP_NAME:?Run source ~/prel37/config/lab.env first}" &&
+  gh api -X DELETE "repos/{owner}/{repo}/git/refs/heads/backstage/$APP_NAME-profile-standard"
+```
+
+Before resubmitting, compare the current `profile.yaml` on app-repository `main` with the requested canonical profile. A repeated request for identical content has nothing to change, so Backstage usually fails the task, for example with a `null response from GitHub` error, instead of opening a PR. Record that no-change result rather than expecting a rollout.
 
 For a generated PR, manually inspect the diff. It must change only `apps/fourth-coffee/profile.yaml` to the exact approved `platform/profiles/workload-small.yaml` or `workload-standard.yaml` content. The native `fetch:plain:file` and `publish:github:pull-request` steps must preserve `values.yaml`, including identity and image. The Application's destination and access are platform-owned and not in the app repository. Do not implement a custom action to repair a preparation mismatch.
 
@@ -2577,6 +2792,12 @@ The required fixture changes only `image.tag` to `latest`. Normal deployments re
 The chart schema supports the locked tag or `latest`; there is no custom CI permissive exception. If an external branch check rejects the change first, record that enforcement point and ask the proctor to inspect the repository policy. If the rendered desired image remains digest-pinned for this fixture, ask organizers to inspect the chart/configuration rather than removing digest pinning yourself. Existing running Pods may remain on the locked digest while the update is denied. If an image-pull error occurs, it is not evidence of the intended safeguard.
 
 Do not disable checks or policy to force the demonstration. Missing resource requests are not a substitute fixture because AKS Automatic may inject defaults.
+
+If Argo CD shows `Synced` and `Progressing` instead of a sync failure, only the Pods were denied, not the Deployments. Look for the same rule in the ReplicaSet events, and record it as your rejection reason:
+
+```bash
+kubectl --context "$AKS_CONTEXT" -n "$TEAM" get events --field-selector reason=FailedCreate
+```
 
 For recovery, use native `jq` as shown in [Module 5](#4-restore-the-approved-tag-through-git) to read `.application.imageTag` from `config/artifact-lock.json`. If the lookup fails or the value is empty or `latest`, stop; do not guess a tag. Restoring the locked tag restores the digest-pinned desired image. Check that the recovery PR preserves `profile.yaml` at `standard` and changes only the expected base value.
 
@@ -2616,7 +2837,7 @@ kubectl --context "$AKS_CONTEXT" -n "$TEAM" get configmap platform-context -o js
 - **HTTP 401 or token acquisition failures:** verify the approved image, workload-identity environment and token-file mount, the workload-cluster issuer, and the `https://monitor.azure.com/.default` audience. A connection string does not authenticate native OTLP.
 - **HTTP 403:** the setup operator checks the exporting agent's `Monitoring Metrics Publisher` assignment on the DCR named by that endpoint, including propagation of a newly created assignment. `Monitoring Reader` on Application Insights is not an ingestion grant.
 - **HTTP 404 or an invalid-stream error:** compare each complete URL with **OTLP Connection Info**. The metrics stream is discovered from the DCR and is case-sensitive. Do not use the classic connection string's ingestion URL as an OTLP URL.
-- **Node-IP, localhost, or port 28331/28333 endpoints:** the pod has stale in-cluster collector configuration. Follow [the migration steps](#migrate-an-existing-lab-to-direct-otlp); there is no node collector to wait for on this path.
+- **Node-IP, localhost, or port 28331/28333 endpoints:** the pod has stale in-cluster collector configuration, so your lab image is out of date. Stop and ask a proctor; there is no node collector to wait for on this path.
 - **Export works initially, then fails:** verify application token renewal. A static bearer header is not a durable fix.
 - **Export succeeds but the resource-filtered query is empty:** verify the generated DCR's workspace destination and the `microsoft.applicationId` resource attribute. For this contract it contains the connection string's `InstrumentationKey` GUID, not the ARM resource ID used by the query's `_ResourceId` filter.
 
