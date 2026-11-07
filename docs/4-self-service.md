@@ -106,10 +106,10 @@ git checkout main && git pull origin main
 git status --short
 git checkout -b add-standard-profile
 sed -i.bak \
-  -e 's/enum: \[small\]$/enum: [small, standard]/' \
-  -e 's/description: Choose the small profile\.$/description: Choose using demand evidence. Standard has higher app requests and memory limits; namespace quota is unchanged./' \
+  -e 's/enum: \[small\]/enum: [small, standard]/' \
+  -e 's/description: Choose the small profile\./description: Choose using demand evidence. Standard has higher app requests and memory limits; namespace quota is unchanged./' \
   backstage/templates/ai-app/template.yaml && rm backstage/templates/ai-app/template.yaml.bak
-git diff
+git --no-pager diff
 ```
 
 **Expected result:** `git status --short` prints nothing, and the diff shows exactly two changed lines: `description` and `enum`. If the diff is empty, the file did not match what step 1 showed; ask for help rather than editing other lines.

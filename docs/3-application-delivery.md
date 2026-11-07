@@ -183,14 +183,27 @@ extraEnvFrom:
 
 ### 4. Commit, open, review, and merge the PR
 
-New files do not show in plain `git diff`, so stage the two files first and review what is staged:
+New files do not show in plain `git diff`, so stage the two files first, then review what is staged before you commit:
 
 ```bash
 git add "apps/$APP_NAME/values.yaml" "apps/$APP_NAME/profile.yaml"
-git diff --staged
+git status --short
+git --no-pager diff --staged
+```
+
+**Expected result:** `git status --short` lists exactly two files, `A  apps/fourth-coffee/profile.yaml` and `A  apps/fourth-coffee/values.yaml`, and the diff ends with `name: platform-context` in `values.yaml`. `--no-pager` prints the whole diff and returns you to the prompt. Without it, Git shows a long diff in a pager and waits at a `:` or `(END)` prompt; press **q** to get the prompt back. If any other file is listed, or `values.yaml` still has `name: ""`, stop and ask for help before you commit.
+
+Commit the two files, publish the branch, and open the PR:
+
+```bash
 git commit -m "feat: deploy $APP_NAME to $TEAM"
 git push -u origin "deploy-$APP_NAME"
 gh pr create --fill
+```
+
+Wait for `gh` to finish, then list the files in the PR:
+
+```bash
 gh pr diff --name-only
 ```
 
@@ -257,7 +270,12 @@ date -u +%FT%TZ
 
 Telemetry timestamps are in UTC, so this gives you a time to compare against.
 
-**2. Use the app.** At `http://beans.localhost:8080`, type a message such as `Suggest two coffee options for someone who likes oat milk` and select **Send**. Then select **The Daily** under **Meet your next usual**, enter a made-up name for pickup, and select **Confirm** when the draft is ready. Use synthetic information only.
+**2. Use the app.** At `http://beans.localhost:8080`, type a message such as `Suggest two coffee options for someone who likes oat milk` and select **Send**. The barista replies with a suggestion, but a suggestion doesn't add anything to the **Order ticket**, which still says **Nothing on the ticket yet**. Then place an order:
+
+- Select **Surprise me**, the last item in the **On the board** panel. The barista builds a drink from what's in stock and replies *Your coffee is ready: ...*, and the order ticket shows the drink and its price.
+- Enter a made-up name under **Name on the cup** and select **Confirm and brew**. The barista replies with an order number and a pickup time.
+
+Selecting another drink on the board, or typing an order, can get a clarifying reply such as *Double includes 2 shots.* instead of a draft, and the ticket stays empty. If that happens, select **Surprise me**. In a narrow browser window, such as the lab VM's, the order ticket sits below the chat; scroll down to find it, or zoom out with **Ctrl+minus** until the three columns sit side by side. Use synthetic information only.
 
 **3. Find your model call.** The agents send authenticated OTLP requests directly to Azure Monitor's cloud ingestion endpoints. The Application Insights DCR routes spans to `OTelSpans` in the lab's Log Analytics workspace, attributed to your Application Insights resource. Allow a few minutes for ingestion, then run:
 

@@ -208,7 +208,7 @@ grep -v costCenter examples/request.yaml | sed 's/name: beans-dev/name: contract
 git checkout main && git pull origin main
 git checkout -b update-request-schema
 sed -i.bak 's/required: \[team, application, owner\]/required: [team, application, owner, costCenter]/' api/xrd.yaml && rm api/xrd.yaml.bak
-git diff
+git --no-pager diff
 ```
 
 **Expected result:** the diff shows one changed line, from `required: [team, application, owner]` to `required: [team, application, owner, costCenter]`. If the diff is empty, the `sed` did not match; check that `api/xrd.yaml` is unchanged from `main` and ask for help rather than editing other lines.
@@ -283,7 +283,7 @@ Another team would change `metadata.name`, `team`, `application`, and `owner` to
 #### 6. Commit, open, review, and merge the PR
 
 ```bash
-git diff --stat main
+git --no-pager diff --stat main
 git add "requests/$APP_ENV.yaml"
 git commit -m "feat: request $APP_ENV environment"
 git push -u origin submit-env-request

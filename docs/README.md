@@ -134,7 +134,7 @@ Every module follows the same rhythm:
 Two conventions keep the steps predictable:
 
 - **Read files in VS Code.** When a step says _In VS Code, open `api/xrd.yaml` (Platform folder)_, use the Explorer to open the file and read it. You can click around and explore.
-- **Make changes in the terminal.** Edits, Git, and GitHub actions are terminal commands you copy and run. This keeps every learner's change identical and reviewable. Do not also edit the same file in VS Code; if you do, `git diff` shows exactly what changed so you can fix it.
+- **Make changes in the terminal.** Edits, Git, and GitHub actions are terminal commands you copy and run. This keeps every learner's change identical and reviewable. Do not also edit the same file in VS Code; if you do, `git --no-pager diff` shows exactly what changed so you can fix it.
 
 Most waits are reconciliation: a controller noticing a change and acting on it. Each module tells you how long to expect and how to ask Argo CD to check Git immediately instead of waiting for its next poll.
 
@@ -151,7 +151,7 @@ git status --short                 # expect no output
 # 2. Branch, change, and review your own diff
 git checkout -b <branch-name>
 # ... the module's change command ...
-git diff                           # confirm only the intended lines changed
+git --no-pager diff                # confirm only the intended lines changed
 
 # 3. Commit only the named file and publish the branch
 git add <file>
@@ -165,6 +165,8 @@ gh pr merge --merge --delete-branch
 ```
 
 `gh pr merge --delete-branch` also switches your clone back to `main` and pulls the merge, so you are ready for the next change.
+
+**Use `git --no-pager` for `git diff` and `git log`.** Without it, Git opens a pager (`less`) when the output is long, and anything you type next goes to the pager instead of the shell. If you see a `:` prompt or an `(END)` marker, press **q** to leave it.
 
 Rules that keep the lab safe:
 
