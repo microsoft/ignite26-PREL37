@@ -1274,11 +1274,19 @@ extraEnvFrom:
 
 ### 4. Commit, open, review, and merge the PR
 
-New files do not show in plain `git diff`, so stage the two files first and review what is staged:
+New files do not show in plain `git diff`, so stage the two files first, then review what is staged before you commit:
 
 ```bash
 git add "apps/$APP_NAME/values.yaml" "apps/$APP_NAME/profile.yaml"
+git status --short
 git --no-pager diff --staged
+```
+
+**Expected result:** `git status --short` lists exactly two files, `A  apps/fourth-coffee/profile.yaml` and `A  apps/fourth-coffee/values.yaml`, and the diff ends with `name: platform-context` in `values.yaml`. `--no-pager` prints the whole diff and returns you to the prompt. Without it, Git shows a long diff in a pager and waits at a `:` or `(END)` prompt; press **q** to get the prompt back. If any other file is listed, or `values.yaml` still has `name: ""`, stop and ask for help before you commit.
+
+Commit the two files, publish the branch, and open the PR:
+
+```bash
 git commit -m "feat: deploy $APP_NAME to $TEAM"
 git push -u origin "deploy-$APP_NAME"
 gh pr create --fill
@@ -1357,7 +1365,12 @@ date -u +%FT%TZ
 
 Telemetry timestamps are in UTC, so this gives you a time to compare against.
 
-**2. Use the app.** At `http://beans.localhost:8080`, type a message such as `Suggest two coffee options for someone who likes oat milk` and select **Send**. Then select **Surprise me** in the **On the board** panel, or ask the barista for a drink, so the barista drafts an order. Enter a made-up name under **Name on the cup** and select **Confirm and brew**. At the VM's screen size the page is a single column, so the order ticket sits below the chat; scroll down to find it, or zoom out with **Ctrl+minus** to see the columns side by side. Use synthetic information only.
+**2. Use the app.** At `http://beans.localhost:8080`, type a message such as `Suggest two coffee options for someone who likes oat milk` and select **Send**. The barista replies with a suggestion, but a suggestion doesn't add anything to the **Order ticket**, which still says **Nothing on the ticket yet**. Then place an order:
+
+- Select **Surprise me**, the last item in the **On the board** panel. The barista builds a drink from what's in stock and replies *Your coffee is ready: ...*, and the order ticket shows the drink and its price.
+- Enter a made-up name under **Name on the cup** and select **Confirm and brew**. The barista replies with an order number and a pickup time.
+
+Selecting another drink on the board, or typing an order, can get a clarifying reply such as *Double includes 2 shots.* instead of a draft, and the ticket stays empty. If that happens, select **Surprise me**. In a narrow browser window, such as the lab VM's, the order ticket sits below the chat; scroll down to find it, or zoom out with **Ctrl+minus** until the three columns sit side by side. Use synthetic information only.
 
 **3. Find your model call.** The agents send authenticated OTLP requests directly to Azure Monitor's cloud ingestion endpoints. The Application Insights DCR routes spans to `OTelSpans` in the lab's Log Analytics workspace, attributed to your Application Insights resource. Allow a few minutes for ingestion, then run:
 
@@ -1522,8 +1535,8 @@ git checkout main && git pull origin main
 git status --short
 git checkout -b add-standard-profile
 sed -i.bak \
-  -e 's/enum: \[small\]$/enum: [small, standard]/' \
-  -e 's/description: Choose the small profile\.$/description: Choose using demand evidence. Standard has higher app requests and memory limits; namespace quota is unchanged./' \
+  -e 's/enum: \[small\]/enum: [small, standard]/' \
+  -e 's/description: Choose the small profile\./description: Choose using demand evidence. Standard has higher app requests and memory limits; namespace quota is unchanged./' \
   backstage/templates/ai-app/template.yaml && rm backstage/templates/ai-app/template.yaml.bak
 git --no-pager diff
 ```
@@ -1799,11 +1812,11 @@ cd "$LAB_ROOT/app-deploy"
 git checkout main && git pull origin main
 git status --short
 git checkout -b try-latest-tag
-sed -i.bak 's/^  tag: ".*"$/  tag: "latest"/' "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
+sed -i.bak 's/^  tag: ".*"/  tag: "latest"/' "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
 git --no-pager diff
 ```
 
-**Expected result:** `git status --short` prints nothing, and the diff shows one line, from the organizer-approved image tag to `tag: "latest"`. `profile.yaml` stays at `standard`. Backstage never offers a mutable tag; you are making this change by hand only to watch the guardrail work.
+**Expected result:** `git status --short` prints nothing, and the diff shows one line, from the organizer-approved image tag to `tag: "latest"`. `profile.yaml` stays at `standard`. Backstage never offers a mutable tag; you are making this change by hand only to watch the guardrail work. If the diff is empty, the `sed` did not match; check that `apps/fourth-coffee/values.yaml` is unchanged from `main` and ask for help rather than editing the file by hand.
 
 In VS Code, open `apps/fourth-coffee/values.yaml` (**App-Deploy** folder) to see the change in context. `image.tag` is the only line you touched.
 
@@ -1891,7 +1904,7 @@ git checkout main && git pull origin main
 git checkout -b restore-image-tag
 TAG="$(jq -er '.application.imageTag' "$LAB_ROOT/config/artifact-lock.json")" &&
   echo "Approved tag: $TAG" &&
-  sed -i.bak "s/^  tag: \"latest\"\$/  tag: \"$TAG\"/" "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
+  sed -i.bak "s/^  tag: \"latest\"/  tag: \"$TAG\"/" "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
 git --no-pager diff
 ```
 

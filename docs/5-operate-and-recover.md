@@ -100,11 +100,11 @@ cd "$LAB_ROOT/app-deploy"
 git checkout main && git pull origin main
 git status --short
 git checkout -b try-latest-tag
-sed -i.bak 's/^  tag: ".*"$/  tag: "latest"/' "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
-git diff
+sed -i.bak 's/^  tag: ".*"/  tag: "latest"/' "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
+git --no-pager diff
 ```
 
-**Expected result:** `git status --short` prints nothing, and the diff shows one line, from the organizer-approved image tag to `tag: "latest"`. `profile.yaml` stays at `standard`. Backstage never offers a mutable tag; you are making this change by hand only to watch the guardrail work.
+**Expected result:** `git status --short` prints nothing, and the diff shows one line, from the organizer-approved image tag to `tag: "latest"`. `profile.yaml` stays at `standard`. Backstage never offers a mutable tag; you are making this change by hand only to watch the guardrail work. If the diff is empty, the `sed` did not match; check that `apps/fourth-coffee/values.yaml` is unchanged from `main` and ask for help rather than editing the file by hand.
 
 In VS Code, open `apps/fourth-coffee/values.yaml` (**App-Deploy** folder) to see the change in context. `image.tag` is the only line you touched.
 
@@ -175,13 +175,13 @@ The approved tag lives in the lab's artifact lock. Create a recovery branch and 
 cd "$LAB_ROOT/app-deploy"
 git checkout main && git pull origin main
 git checkout -b restore-image-tag
-TAG="$(jq -r '.application.imageTag' "$LAB_ROOT/config/artifact-lock.json")"
-echo "Approved tag: $TAG"
-sed -i.bak "s/^  tag: \"latest\"\$/  tag: \"$TAG\"/" "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
-git diff
+TAG="$(jq -er '.application.imageTag' "$LAB_ROOT/config/artifact-lock.json")" &&
+  echo "Approved tag: $TAG" &&
+  sed -i.bak "s/^  tag: \"latest\"/  tag: \"$TAG\"/" "apps/$APP_NAME/values.yaml" && rm "apps/$APP_NAME/values.yaml.bak"
+git --no-pager diff
 ```
 
-**Expected result:** `Approved tag:` followed by the verified tag in `config/artifact-lock.json`, and the diff changes one line from `tag: "latest"` back to that tag.
+**Expected result:** `Approved tag:` followed by the verified tag in `config/artifact-lock.json`, and the diff changes one line from `tag: "latest"` back to that tag. If the lookup fails, the `sed` does not run and the diff is empty. Stop and ask for help; do not guess a tag.
 
 Commit, review, and merge the fix:
 
