@@ -65,7 +65,7 @@ Throughout this workshop, you will be acting as a platform engineer, though you'
 
 ### One subscription, two clusters
 
-To maintain a clean separation between the tools that manage the platform and the applications that run on it, the workshop architecture utilizes two distinct clusters. This separation of concerns ensures that the management plane—where your orchestration and infrastructure tools reside—remains isolated from the workload plane, where the actual application namespaces and gateways are deployed.
+To maintain a clean separation between the tools that manage the platform and the applications that run on it, the workshop architecture utilizes two distinct clusters. This separation of concerns ensures that the management plane-where your orchestration and infrastructure tools reside-remains isolated from the workload plane, where the actual application namespaces and gateways are deployed.
 
 | Cluster                      | Role                                                                                                                                                                                       | Kubeconfig context |
 | :--------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------- |
@@ -104,10 +104,10 @@ To get the most out of this session, please follow the modules in the order pres
 | :---------- | :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
 | 00:00-00:35 | [1. Define the developer promise](#module-1-define-the-developer-promise)                                 | Identify the core developer tasks, supported choices, and ownership models, and determine how to measure success.    |
 | 00:35-01:15 | [2. Implement the environment contract](#module-2-implement-the-environment-contract)                     | Wire the platform components, implement cost attribution within the API, and provision the `beans` environment.      |
-| 01:15-01:25 | **Break**                                                                                                 | —                                                                                                                    |
+| 01:15-01:25 | **Break**                                                                                                 | -                                                                                                                    |
 | 01:25-02:05 | [3. Connect and deploy the application](#module-3-connect-and-deploy-the-application)                     | Bind the application to platform identity and configuration, deploy via GitOps, and trace a model call.              |
 | 02:05-02:45 | [4. Complete the self-service interface](#module-4-complete-the-self-service-interface)                   | Enhance Backstage with constrained profile choices and use them to update the running application.                   |
-| 02:45-02:55 | **Break**                                                                                                 | —                                                                                                                    |
+| 02:45-02:55 | **Break**                                                                                                 | -                                                                                                                    |
 | 02:55-03:40 | [5. Recover, inspect telemetry, and evaluate cost](#module-5-recover-inspect-telemetry-and-evaluate-cost) | Experience a guardrail rejecting an unsafe change, perform a recovery via Git, and make a data-driven cost decision. |
 | 03:40-04:00 | [6. Plan the next platform milestone](#module-6-plan-the-next-platform-milestone)                         | Select the next platform improvement and define the evidence required to prove its success.                          |
 
@@ -121,7 +121,7 @@ Finally, the [summary](#summary-and-take-home-material) serves as your primary t
 
 ## Before you begin
 
-To get the most out of this workshop, you should have a basic familiarity with Kubernetes—specifically namespaces, Deployments, Services, and YAML—as well as a general understanding of how Git commits are used to track changes. You do not need any prior experience with Crossplane, OpenTofu, Argo CD, or Backstage; we will explain the core concepts of each tool before you are asked to use them.
+To get the most out of this workshop, you should have a basic familiarity with Kubernetes-specifically namespaces, Deployments, Services, and YAML-as well as a general understanding of how Git commits are used to track changes. You do not need any prior experience with Crossplane, OpenTofu, Argo CD, or Backstage; we will explain the core concepts of each tool before you are asked to use them.
 
 For the duration of the session, please use the assigned lab VM, subscription, and accounts rather than your own personal credentials. The Azure foundation has been pre-provisioned for you by the organizers. Before opening your workspace, ensure you have completed the [Set up your lab environment](#set-up-your-lab-environment) section (which we'll walkthrough next). If you find that any components are missing or a checkpoint is blocked, please reach out to a proctor for assistance.
 
@@ -129,7 +129,7 @@ Regarding access, you will not need administrator permissions for either Microso
 
 ### Your terminals at a glance
 
-> [!alert] To ensure a smooth experience, it is important to use the correct terminal for each task. Running commands in the wrong context is one of the most common causes of confusion in this lab. To help you stay on track, every critical step in the guide begins with a **Run in:** line that specifies exactly which terminal—and, where necessary, which folder—you should be using.
+> [!alert] To ensure a smooth experience, it is important to use the correct terminal for each task. Running commands in the wrong context is one of the most common causes of confusion in this lab. To help you stay on track, every critical step in the guide begins with a **Run in:** line that specifies exactly which terminal-and, where necessary, which folder-you should be using.
 
 | Name                       | Location                                        | Primary Purpose                                                         | Status                                              |
 | :------------------------- | :---------------------------------------------- | :---------------------------------------------------------------------- | :-------------------------------------------------- |
@@ -431,7 +431,7 @@ Every step includes an **Expected result**. If your output doesn't match, please
 
 ### A note on "Reconciliation"
 
-You will notice occasional pauses between steps. This is "reconciliation"—the time it takes for a controller to detect a change and act upon it. We have included estimated wait times in the guide, along with instructions on how to prompt Argo CD to sync with Git immediately if you prefer not to wait.
+You will notice occasional pauses between steps. This is "reconciliation"-the time it takes for a controller to detect a change and act upon it. We have included estimated wait times in the guide, along with instructions on how to prompt Argo CD to sync with Git immediately if you prefer not to wait.
 
 ### Three workflow conventions
 
@@ -1116,7 +1116,7 @@ Rerun these every minute or so. What you will see:
 
 > [!knowledge] **See it in the UI while you wait.** In Argo CD (+++https://localhost:8443+++), select **Applications**. `platform-system` and `platform-requests` show **Synced** and **Healthy**. Select `platform-requests` to see the `beans-dev` AppEnvironment it applied. When the environment is ready, `beans-dev-baseline` and `fourth-coffee` tiles appear.
 >
-> ![Argo CD Applications list with platform-system and platform-requests Synced and Healthy, and the beans-dev AppEnvironment in the platform-requests tree](https://placehold.co/600x400){600}
+> !IMAGE[Argo CD Applications list with platform-system and platform-requests Synced and Healthy, and the beans-dev AppEnvironment in the platform-requests tree](instructions359547/biq3n613.png)
 
 When you are ready to wait for the end, run:
 
