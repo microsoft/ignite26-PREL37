@@ -26,7 +26,7 @@ Without a platform, every team rediscovers the same things: which identity to us
 
 The `AppEnvironment` request you merged in Module 2 is the source of this contract. When the environment is ready, the platform publishes a `status.binding` object. The binding is the bridge between the platform's infrastructure and the application's runtime, and in step 1 you read it directly.
 
-| Field                 | Value                         | The "Developer's Perspective"       |
+| Field                 | Value                         | Question it answers                 |
 | --------------------- | ----------------------------- | ----------------------------------- |
 | `namespace`           | `beans`                       | "Where does my app live?"           |
 | `serviceAccountNames` | `["concierge","ops-agent"]`   | "Who am I in the eyes of Azure?"    |
@@ -129,7 +129,7 @@ APP_NAME="$(kubectl --context "$CONTROL_CONTEXT" get appenvironment "$APP_ENV" \
   export APP_NAME
 ```
 
-**Expected result:** `echo "$APP_NAME"` prints `fourth-coffee` for a fresh lab. If the command fails, stop and inspect the request. If `config/lab.env` still saves a different `APP_NAME`, correct only that assignment to match the request before sourcing the file again.
+**Expected result:** `echo "$APP_NAME"` prints `fourth-coffee`. If the command fails or prints something else, stop and ask a proctor.
 
 Then confirm Argo CD already has your Application and is waiting for configuration. This is the platform-owned wiring in action:
 
@@ -272,10 +272,10 @@ Telemetry timestamps are in UTC, so this gives you a time to compare against.
 
 **2. Use the app.** At `http://beans.localhost:8080`, type a message such as `Suggest two coffee options for someone who likes oat milk` and select **Send**. The barista replies with a suggestion, but a suggestion doesn't add anything to the **Order ticket**, which still says **Nothing on the ticket yet**. Then place an order:
 
-- Select **Surprise me**, the last item in the **On the board** panel. The barista builds a drink from what's in stock and replies *Your coffee is ready: ...*, and the order ticket shows the drink and its price.
+- Select **Surprise me**, the last item in the **On the board** panel. The barista builds a drink from what's in stock and replies _Your coffee is ready: ..._, and the order ticket shows the drink and its price.
 - Enter a made-up name under **Name on the cup** and select **Confirm and brew**. The barista replies with an order number and a pickup time.
 
-Selecting another drink on the board, or typing an order, can get a clarifying reply such as *Double includes 2 shots.* instead of a draft, and the ticket stays empty. If that happens, select **Surprise me**. In a narrow browser window, such as the lab VM's, the order ticket sits below the chat; scroll down to find it, or zoom out with **Ctrl+minus** until the three columns sit side by side. Use synthetic information only.
+Selecting another drink on the board, or typing an order, can get a clarifying reply such as _Double includes 2 shots._ instead of a draft, and the ticket stays empty. If that happens, select **Surprise me**. In a narrow browser window, such as the lab VM's, the order ticket sits below the chat; scroll down to find it, or zoom out with **Ctrl+minus** until the three columns sit side by side. Use synthetic information only.
 
 **3. Find your model call.** The agents send authenticated OTLP requests directly to Azure Monitor's cloud ingestion endpoints. The Application Insights DCR routes spans to `OTelSpans` in the lab's Log Analytics workspace, attributed to your Application Insights resource. Allow a few minutes for ingestion, then run:
 

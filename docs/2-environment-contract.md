@@ -50,7 +50,7 @@ Think of the tools as one pipeline that turns a small YAML file into a usable en
 | **4. Provisioning** | provider-opentofu  | OpenTofu executes the plan, creating the namespace, identities, and telemetry resources.          | The raw infrastructure exists in Azure.  |
 | **5. Activation**   | Argo CD (Baseline) | Argo CD uses the outputs from provisioning to deliver the ServiceAccount and ConfigMap.           | The environment is usable for the app.   |
 
-You are not just running commands; you are wiring this pipeline. You connect the supplied parts, complete one piece of the public contract, then follow a real request through the system.
+In this module you wire this pipeline: connect the supplied parts, complete one piece of the public contract, then follow a real request through the system.
 
 ### Control plane and workload plane
 

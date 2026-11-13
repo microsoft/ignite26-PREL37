@@ -22,14 +22,14 @@ The tools are the hands-on vehicle; the fundamentals are the point: what a platf
 
 ## The BACK stack
 
-This workshop uses a common open source combination sometimes called the BACK stack. You will touch each part:
+The BACK stack combines Backstage, Argo CD, Crossplane, and Kyverno. This lab uses the Azure Policy add-on for Kubernetes instead of Kyverno.
 
-| Letter | Component        | Role in this platform                                                                                            | First hands-on use |
-| ------ | ---------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------ |
-| B      | Backstage        | Developer portal. A software template offers one constrained choice and opens a pull request for review.         | Module 4           |
-| A      | Argo CD          | GitOps delivery. Watches the platform and application repositories and applies what is merged to `main`.         | Module 2           |
-| C      | Crossplane       | Platform API. Defines the `AppEnvironment` request and composes it into Azure resources and Kubernetes delivery. | Module 2           |
-| K      | Kubernetes (AKS) | Runtime. A control cluster runs the platform controllers; an AKS Automatic workload cluster runs applications.   | Module 2           |
+| Letter | Component  | Role in this platform                                                                                            | First hands-on use |
+| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------- | ------------------ |
+| B      | Backstage  | Developer portal. A software template offers one constrained choice and opens a pull request for review.         | Module 4           |
+| A      | Argo CD    | GitOps delivery. Watches the platform and application repositories and applies what is merged to `main`.         | Module 2           |
+| C      | Crossplane | Platform API. Defines the `AppEnvironment` request and composes it into Azure resources and Kubernetes delivery. | Module 2           |
+| K      | Kyverno    | Policy enforcement. The Azure Policy add-on uses OPA Gatekeeper to enforce cluster policy.                       | Module 5           |
 
 Crossplane runs an OpenTofu module (through provider-opentofu) to create the Azure resources, so the infrastructure code stays readable Terraform-compatible HCL rather than a custom controller.
 

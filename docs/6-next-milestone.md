@@ -34,7 +34,7 @@ Shipping a change without a clear hypothesis tends to produce feature bloat: cap
 
 ### Measure tasks, not users
 
-"Number of users" is a misleading platform metric. High usage can simply mean the platform is mandatory. Task-based measures tell you whether developer work actually got easier.
+Raw user counts mislead when the platform is mandatory. Measure adoption as the share of teams on the supported path versus working around it. Task-based measures tell you whether developer work actually got easier.
 
 | Metric                  | What it measures                                           | Why it matters                                         |
 | :---------------------- | :--------------------------------------------------------- | :----------------------------------------------------- |

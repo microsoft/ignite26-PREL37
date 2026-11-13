@@ -31,9 +31,9 @@ An opaque "Access Denied" or a generic "Internal Server Error" does not remove w
 
 A useful guardrail tells the developer three things:
 
-1. **What was blocked?** (e.g., "The update to the `concierge` deployment was rejected.")
-2. **Which specific field caused the failure?** (e.g., "The `image.tag` field was set to `latest`.")
-3. **What is the supported value?** (e.g., "Please use a specific, immutable image digest or version tag.")
+1. **What was blocked?** For example, "The update to the `concierge` deployment was rejected."
+2. **Which field caused it?** For example, "The `image.tag` field was set to `latest`."
+3. **What is the supported value?** For example, "Use a specific, immutable image digest or version tag."
 
 In this exercise, you will set `image.tag` to `latest`. The Helm chart's schema allows it, but the AKS admission policy (Deployment Safeguards) rejects mutable tags. You will watch the platform reject it, then recover the supported way: correct the source in Git and let Argo CD converge.
 
