@@ -777,7 +777,6 @@ By the end of this module, you will be able to:
 
 - [] Backstage (Terminal 2) and Argo CD (Terminal 3) are still running.
 - [] You're in the VS Code terminal, and `echo $APP_ENV` prints `beans-dev`.
-- [] You have time for a wait of about 7 minutes, up to 15, at step 7.
 
 ## Separate intent from implementation
 
@@ -822,9 +821,22 @@ Every resource has exactly one owner. Two controllers managing the same object u
 | provider-opentofu, running the remote module | Per-team Azure resources and the managed namespace. Each request has its own OpenTofu state in Azure Blob Storage.                    |
 | Argo CD baseline and application delivery    | In-namespace resources. The app chart never creates the Namespace or its quota.                                                       |
 
-The remote module `opentofu/managed-namespace/main.tf` is one complete file that only the controller runs. Do not run Terraform or OpenTofu against it from your computer.
+The remote module `opentofu/managed-namespace/main.tf` is a single, complete file intended to be executed exclusively by the platform controller. Please do not attempt to run Terraform or OpenTofu against this file from your local machine.
 
-Each request vends one team environment. The request's `team` names the namespace and the team's Azure resources, such as the per-agent identities `id-prel37-<lab>-beans-concierge` and `id-prel37-<lab>-beans-ops-agent`, and `appi-prel37-<lab>-beans`. The request's `metadata.name` names its Workspace, Argo CD projects, and baseline Application. This workshop uses team `beans`, application `fourth-coffee`, and request `beans-dev`, which `lab.env` sets as `$TEAM`, `$APP_NAME`, and `$APP_ENV`.
+### Resource Naming Conventions
+
+Each environment request provisions a set of resources using a specific naming logic. The resulting names are derived from two primary fields:
+
+*   **The `team` field:** This defines the name of the Kubernetes namespace and the associated Azure resources. For example, you will see this reflected in the per-agent identities (e.g., `id-...-beans-concierge` and `id-...-beans-ops-agent`) and the Application Insights resource (`appi-...-beans`).
+*   **The `metadata.name` field:** This is used to name the Workspace, the Argo CD projects, and the baseline Application.
+
+### Workshop Configuration
+
+For the purposes of this workshop, we are using a specific set of identifiers. These are defined in the `lab.env` file and mapped to the environment variables `$TEAM`, `$APP_NAME`, and `$APP_ENV`:
+
+*   **Team:** `beans`
+*   **Application:** `fourth-coffee`
+*   **Request:** `beans-dev`
 
 ### Why cost attribution belongs in the contract
 
