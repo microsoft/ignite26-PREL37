@@ -53,13 +53,13 @@ AKS offers two ways to run a cluster. Think of them as two points on a spectrum 
 
 The same overview has a feature-by-feature comparison table. Use it when you decide which tier fits a given cluster.
 
-**When Standard is the better call:** you need a pinned Kubernetes version, specific node configuration, a fixed footprint, or networking and add-ons that Automatic manages for you. Choosing Standard is a decision to own those settings, and that is a fair trade when you have a reason to.
+**When Standard is the better call:** you need control over when minor-version upgrades happen, specific node configuration, a fixed footprint, or networking and add-ons that Automatic manages for you. Choosing Standard is a decision to own those settings, and that is a fair trade when you have a reason to.
 
 ## The choice this lab makes: two clusters, two tiers
 
 The lab runs two clusters. Module 2 calls them the control plane and the workload plane.
 
-**Control cluster: AKS Standard.** This cluster runs the platform's own controllers: Crossplane, which serves the request API, and Argo CD, which delivers from Git. Its workload is small, predictable, and owned by the platform team, so control matters more than elasticity. In `infra/main.tf` it is a single fixed node with manual node provisioning, a `patch` upgrade channel, `NodeImage` OS upgrades, local accounts disabled, Azure RBAC, workload identity, and Cilium networking. Those are Standard options turned on deliberately. The single node is sized for a lab, not for production.
+**Control cluster: AKS Standard.** This cluster runs the platform's own controllers: Crossplane, which serves the request API, and Argo CD, which delivers from Git. Its workload is small, predictable, and owned by the platform team, so control matters more than elasticity. In `infra/main.tf` it is a single fixed node with manual node provisioning, a `patch` upgrade channel, `NodeImage` OS upgrades, local accounts disabled, Azure RBAC, workload identity, and Cilium networking. Those are Standard options turned on deliberately. The single node is sized for a lab, not for production. A production control cluster would also use a private API server and scope its identity to the resource groups it manages.
 
 **Workload cluster: AKS Automatic.** This is where developers' applications run. Here, best practices enforced by default matter most: every team's namespace starts from a hardened baseline, nodes appear when workloads need them, and patching happens without a platform ticket. The lab adds monitoring and the App Routing Gateway API implementation (Istio) on top of the Automatic defaults.
 
@@ -67,7 +67,7 @@ The pattern to take home: **run the platform where you want control, and run ten
 
 ## What AKS provides, and what the platform adds
 
-The BACK stack (Backstage, Argo CD, Crossplane, Kubernetes) does not replace AKS features. It packages them into a contract a developer can request.
+The BACK stack (Backstage, Argo CD, Crossplane, Kyverno) does not replace AKS features. In this lab, the Azure Policy add-on for Kubernetes uses OPA Gatekeeper to fill Kyverno's policy-enforcement role. The platform packages AKS capabilities into a contract a developer can request.
 
 | Layer                               | Owns                                                                                                  | In this lab                                                      |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |

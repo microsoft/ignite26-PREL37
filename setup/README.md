@@ -180,7 +180,7 @@ With both services running, return to your original terminal and open the prepar
 code "$LAB_ROOT/prel37.code-workspace"
 ```
 
-Confirm VS Code is connected to WSL. Open `answers/product-brief.md` in **Lab Root** and start [Module 1: define the developer promise](../docs/1-developer-promise.md). Do not run `make app` until Module 3, and leave the platform wiring to Module 2.
+Confirm VS Code is connected to WSL. In the VS Code Explorer, expand 📁 **Lab Root** > **answers**, open **product-brief.md**, and start [Module 1: define the developer promise](../docs/1-developer-promise.md). Do not run `make app` until Module 3, and leave the platform wiring to Module 2.
 
 ---
 
@@ -627,7 +627,7 @@ Open the prepared workspace from the preparation terminal:
 code "$LAB_ROOT/prel37.code-workspace"
 ```
 
-In WSL, confirm VS Code is connected to WSL. The Explorer contains **Lab Root**, **Platform**, and **App-Deploy**. Open `answers/product-brief.md` in **Lab Root**, read the [workshop overview](../docs/README.md), and start [Module 1: define the developer promise](../docs/1-developer-promise.md).
+In WSL, confirm VS Code is connected to WSL. The Explorer contains 📁 **Lab Root**, 🏗️ **Platform**, and 🚀 **App-Deploy**. In the Explorer, expand 📁 **Lab Root** > **answers** and open **product-brief.md**. Then read the [workshop overview](../docs/README.md), and start [Module 1: define the developer promise](../docs/1-developer-promise.md).
 
 Do not run `make app` yet. The application and its tunnel come in Module 3. Passing these checks is the installation checkpoint, not proof that the later application delivery or telemetry exercises have passed.
 

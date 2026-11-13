@@ -24,7 +24,7 @@ By the end of this module, you will be able to:
 **Starting state on a fresh lab:**
 
 - Controllers (Crossplane, provider-opentofu, Argo CD) are installed and healthy, but not wired to anything.
-- `config/environment.yaml` (Lab Root folder) is rendered for your lab but **not applied**.
+- 📁 **Lab Root** > **config** > **environment.yaml** is rendered for your lab but **not applied**.
 - Argo CD shows no applications. The `AppEnvironment` API does not exist yet.
 - The platform repository's `requests/` folder has no `beans-dev.yaml`, and there is no `beans` team namespace.
 
@@ -50,7 +50,7 @@ Think of the tools as one pipeline that turns a small YAML file into a usable en
 | **4. Provisioning** | provider-opentofu  | OpenTofu executes the plan, creating the namespace, identities, and telemetry resources.          | The raw infrastructure exists in Azure.  |
 | **5. Activation**   | Argo CD (Baseline) | Argo CD uses the outputs from provisioning to deliver the ServiceAccount and ConfigMap.           | The environment is usable for the app.   |
 
-You are not just running commands; you are wiring this pipeline. You connect the supplied parts, complete one piece of the public contract, then follow a real request through the system.
+In this module you wire this pipeline: connect the supplied parts, complete one piece of the public contract, then follow a real request through the system.
 
 ### Control plane and workload plane
 
@@ -104,7 +104,7 @@ kubectl --context "$CONTROL_CONTEXT" -n argocd get secret repo-platform repo-app
 
 ### 2. Connect execution, identity, and delivery permissions
 
-In VS Code, open these files in the **Platform** folder and read the comments:
+In the VS Code Explorer, expand 🏗️ **Platform** > **bootstrap** and open these files. Read the comments:
 
 - `bootstrap/provider-config.yaml`
 - `bootstrap/control.yaml`
@@ -128,7 +128,7 @@ kubectl --context "$CONTROL_CONTEXT" apply --server-side -f "$LAB_ROOT/platform/
 
 ### 3. Supply the trusted lab mapping
 
-In VS Code, open `config/environment.yaml` in the **Lab Root** folder. This is the platform's private knowledge about your lab: the repository URLs, cluster ID, model endpoint, Log Analytics workspace, and `moduleRevision`, the exact platform commit the controller runs. A developer never types any of these. The Composition reads them by name and combines them with the request.
+In the VS Code Explorer, expand 📁 **Lab Root** > **config** and open **environment.yaml**. This is the platform's private knowledge about your lab: the repository URLs, cluster ID, model endpoint, Log Analytics workspace, and `moduleRevision`, the exact platform commit the controller runs. A developer never types any of these. The Composition reads them by name and combines them with the request.
 
 The `moduleRevision` pins execution: even after you change `main`, the OpenTofu module and charts run from this fixed commit. That is how a platform team can change the API without silently changing the code that runs behind it.
 
@@ -140,7 +140,7 @@ kubectl --context "$CONTROL_CONTEXT" apply --server-side -f "$LAB_ROOT/config/en
 
 ### 4. Trace the cost-center field through the implementation
 
-Before turning on delivery, follow one field from the API to Azure. In VS Code, open these files in the **Platform** folder:
+Before turning on delivery, follow one field from the API to Azure. In the VS Code Explorer, expand 🏗️ **Platform** and open these files. Each path starts under 🏗️ **Platform**:
 
 | File                                 | Find                                                                | Why it matters                                                                                                                                |
 | ------------------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -154,7 +154,7 @@ The Composition also creates two Argo CD AppProjects per request, both limited t
 
 ### 5. Turn on delivery and establish the API
 
-In VS Code, open `bootstrap/roots.yaml` in the **Platform** folder. A root `Application` is a pointer that tells Argo CD which Git folder to watch and where to apply it:
+In the VS Code Explorer, expand 🏗️ **Platform** > **bootstrap** and open **roots.yaml**. A root `Application` is a pointer that tells Argo CD which Git folder to watch and where to apply it:
 
 | Root `Application`  | Watches on `main` | Delivers to the control cluster              |
 | ------------------- | ----------------- | -------------------------------------------- |
@@ -266,7 +266,7 @@ sed -i.bak "s/00000000-0000-0000-0000-000000000000/$REQUESTER_ID/" "requests/$AP
 
 If `test` stops the command, `requests/beans-dev.yaml` already exists from an earlier attempt in this lab. Do not overwrite it; check whether its PR already merged.
 
-In VS Code, open `requests/beans-dev.yaml` (**Platform** folder) and read it. Every field is intent:
+In the VS Code Explorer, expand 🏗️ **Platform** > **requests** and open **beans-dev.yaml**. Read it. Every field is intent:
 
 | Field               | Value                 | Meaning                                                                                            |
 | ------------------- | --------------------- | -------------------------------------------------------------------------------------------------- |

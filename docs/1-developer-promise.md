@@ -23,7 +23,7 @@ The scenario for this workshop is deliberately narrow:
 
 > The Fourth Coffee "beans" team needs a governed development environment for its workloads, a supported deployment path, and access to its own operating information.
 
-In platform engineering, the developer outcome is never just "a resource exists." The real goal is to let a team to deploy, make supported changes, understand failures, and find help without needing a platform engineer to manually wire every connection. If a namespace is created but lacks a usable identity, a delivery path, or operating information, the developer is still stuck assembling the missing pieces. This last-mile assembly is where most developer friction lives, and it is the work a platform should take off the developer's plate.
+In platform engineering, the developer outcome is never just "a resource exists." The real goal is to let a team deploy, make supported changes, understand failures, and find help without needing a platform engineer to manually wire every connection. If a namespace is created but lacks a usable identity, a delivery path, or operating information, the developer is still stuck assembling the missing pieces. This last-mile assembly is where most developer friction lives, and it is the work a platform should take off the developer's plate.
 
 ### The capability is not the portal
 
@@ -50,7 +50,7 @@ It is tempting to solve every infrastructure request at once. Start instead with
 
 > This workshop covers one application in one development environment. Production promotion and arbitrary infrastructure requests are out of scope. A thin capability that works beats an all-in-one fulfillment path that does not.
 
-**Tip:** describe success from the developer's perspective (e.g., "I can deploy my app and see the logs") before you name a tool.
+**Tip:** describe success from the developer's perspective (for example, "I can deploy my app and see the logs") before you name a tool.
 
 ## Demonstrate: watch the finished outcome
 
@@ -71,7 +71,7 @@ Do not reproduce the demonstration yet. Your environment has installed controlle
 
 **10 minutes.**
 
-In VS Code, open `answers/product-brief.md` (**Lab Root** folder). You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go. If VS Code is not open yet, follow [Open the prepared workspace](README.md#open-the-prepared-workspace).
+In the VS Code Explorer, expand 📁 **Lab Root** > **answers** and open **product-brief.md**. You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go. If VS Code is not open yet, follow [Open the prepared workspace](README.md#open-the-prepared-workspace).
 
 ### 1. Name the task and friction
 

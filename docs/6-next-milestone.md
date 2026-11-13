@@ -34,7 +34,7 @@ Shipping a change without a clear hypothesis tends to produce feature bloat: cap
 
 ### Measure tasks, not users
 
-"Number of users" is a misleading platform metric. High usage can simply mean the platform is mandatory. Task-based measures tell you whether developer work actually got easier.
+Raw user counts mislead when the platform is mandatory. Measure adoption as the share of teams on the supported path versus working around it. Task-based measures tell you whether developer work actually got easier.
 
 | Metric                  | What it measures                                           | Why it matters                                         |
 | :---------------------- | :--------------------------------------------------------- | :----------------------------------------------------- |
@@ -55,7 +55,7 @@ A new plugin, dashboard, or infrastructure product is not progress by itself. Pr
 
 **10 minutes.**
 
-In VS Code, return to `answers/product-brief.md` (**Lab Root** folder) and fill in the **Module 6** section.
+In the VS Code Explorer, return to 📁 **Lab Root** > **answers** > **product-brief.md** and fill in the **Module 6** section.
 
 ### 1. Select one observed friction point
 

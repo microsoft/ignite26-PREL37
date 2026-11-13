@@ -94,12 +94,13 @@ Do not turn these into extra in-session PRs or consume the protected breaks to c
 - [Granular RBAC for Azure Monitor Logs](https://learn.microsoft.com/azure/azure-monitor/logs/granular-rbac-log-analytics).
 - [AKS cost analysis](https://learn.microsoft.com/azure/aks/cost-analysis).
 - [DORA delivery performance metrics](https://dora.dev/guides/dora-metrics/).
+- [Build the platform, not the plumbing](https://blog.aks.azure.com/2026/11/09/build-the-platform-not-the-plumbing) on the AKS blog.
 
 ## Closing thought: from tooling to product
 
 Moving from a tooling team to a platform product team is a shift in mindset. Tooling focuses on the _capability_ ("We have Argo CD"). Product thinking focuses on the _outcome_ ("Developers can ship a change without a ticket").
 
-Backstage, Argo CD, Crossplane, and AKS are the vehicle. The real value is in the **contracts** you define and the **friction** you remove. Start small, base your roadmap on observed evidence, and always measure success by the developer's ability to complete their task.
+Backstage, Argo CD, Crossplane, and AKS are the vehicle. The real value is in the **contracts** you define and the **friction** you remove. This lab builds the API and the portal up front so you can see every layer. In your own platform, start small: add an API when pull requests become the bottleneck and a portal when discovery does. Base your roadmap on observed evidence, and always measure success by the developer's ability to complete their task.
 
 ---
 

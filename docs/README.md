@@ -22,14 +22,14 @@ The tools are the hands-on vehicle; the fundamentals are the point: what a platf
 
 ## The BACK stack
 
-This workshop uses a common open source combination sometimes called the BACK stack. You will touch each part:
+The BACK stack combines Backstage, Argo CD, Crossplane, and Kyverno. This lab uses the Azure Policy add-on for Kubernetes instead of Kyverno.
 
-| Letter | Component        | Role in this platform                                                                                            | First hands-on use |
-| ------ | ---------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------ |
-| B      | Backstage        | Developer portal. A software template offers one constrained choice and opens a pull request for review.         | Module 4           |
-| A      | Argo CD          | GitOps delivery. Watches the platform and application repositories and applies what is merged to `main`.         | Module 2           |
-| C      | Crossplane       | Platform API. Defines the `AppEnvironment` request and composes it into Azure resources and Kubernetes delivery. | Module 2           |
-| K      | Kubernetes (AKS) | Runtime. A control cluster runs the platform controllers; an AKS Automatic workload cluster runs applications.   | Module 2           |
+| Letter | Component  | Role in this platform                                                                                            | First hands-on use |
+| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------- | ------------------ |
+| B      | Backstage  | Developer portal. A software template offers one constrained choice and opens a pull request for review.         | Module 4           |
+| A      | Argo CD    | GitOps delivery. Watches the platform and application repositories and applies what is merged to `main`.         | Module 2           |
+| C      | Crossplane | Platform API. Defines the `AppEnvironment` request and composes it into Azure resources and Kubernetes delivery. | Module 2           |
+| K      | Kyverno    | Policy enforcement. The Azure Policy add-on uses OPA Gatekeeper to enforce cluster policy.                       | Module 5           |
 
 Crossplane runs an OpenTofu module (through provider-opentofu) to create the Azure resources, so the infrastructure code stays readable Terraform-compatible HCL rather than a custom controller.
 
@@ -133,7 +133,7 @@ Every module follows the same rhythm:
 
 Two conventions keep the steps predictable:
 
-- **Read files in VS Code.** When a step says _In VS Code, open `api/xrd.yaml` (Platform folder)_, use the Explorer to open the file and read it. You can click around and explore.
+- **Read files in VS Code.** When a step says _In the VS Code Explorer, expand 🏗️ **Platform** > **api** and open **xrd.yaml**_, start at the top-level workspace folder named first (📁 **Lab Root**, 🏗️ **Platform**, or 🚀 **App-Deploy**), expand each folder in order, and open the file to read it. You can click around and explore.
 - **Make changes in the terminal.** Edits, Git, and GitHub actions are terminal commands you copy and run. This keeps every learner's change identical and reviewable. Do not also edit the same file in VS Code; if you do, `git --no-pager diff` shows exactly what changed so you can fix it.
 
 Most waits are reconciliation: a controller noticing a change and acting on it. Each module tells you how long to expect and how to ask Argo CD to check Git immediately instead of waiting for its next poll.
@@ -238,4 +238,4 @@ The source for these files lives in this repository under `src/`. The prepared c
 
 ## Recording your results
 
-Use `answers/product-brief.md` (Lab Root folder) as your only worksheet. For each checkpoint, record the PR or request, the merged revision, what you observed, and whether you completed it **independently**, **assisted**, **demonstration-only**, or **blocked**. Mark evidence that has not arrived as pending rather than passed. Use synthetic inputs only; do not paste credentials or raw telemetry.
+Use 📁 **Lab Root** > **answers** > **product-brief.md** in the VS Code Explorer as your only worksheet. For each checkpoint, record the PR or request, the merged revision, what you observed, and whether you completed it **independently**, **assisted**, **demonstration-only**, or **blocked**. Mark evidence that has not arrived as pending rather than passed. Use synthetic inputs only; do not paste credentials or raw telemetry.

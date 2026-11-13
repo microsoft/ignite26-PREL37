@@ -372,7 +372,7 @@ Step cards:
 
 Done-when checklist, one box per item: Promise. Owner. Non-goals. Acceptance criteria. Baseline question.
 **Animation:** Static.
-**Speaker notes:** Everything in Module 1 goes in `answers/product-brief.md` in the Lab Root folder. It is one worksheet for the whole session, so the promise written now is checked against what learners observe later. The checklist is the done-when: five boxes, all in the worksheet.
+**Speaker notes:** Everything in Module 1 goes in 📁 **Lab Root** > **answers** > **product-brief.md** in the VS Code Explorer. It is one worksheet for the whole session, so the promise written now is checked against what learners observe later. The checklist is the done-when: five boxes, all in the worksheet.
 
 ### Slide 13: demo 1, watch the finished outcome
 
@@ -997,7 +997,7 @@ Right, heading "When is it done?", three steps top to bottom, each naming where 
 ```
 
 **Animation:** Demo.
-**Speaker notes:** Open `backstage/templates/ai-app/template.yaml`, show the parameter, steps, and output links, then show that the template change is just another platform PR. Learners do not write a Backstage action or register the catalog.
+**Speaker notes:** Open 🏗️ **Platform** > **backstage** > **templates** > **ai-app** > **template.yaml** in the VS Code Explorer, show the parameter, steps, and output links, then show that the template change is just another platform PR. Learners do not write a Backstage action or register the catalog.
 
 ### Slide 43: your turn, complete and use the interface
 
@@ -1256,7 +1256,7 @@ Right column, three numbered boxes:
 ```
 
 **Animation:** Static.
-**Speaker notes:** Frame the question plainly: Module 4 moved concierge to the standard profile. Was that the right size, and would it change the bill? Open `evidence/profile-comparison.md`: it is calculated from the profile files, not measured, so it shows what was configured, not what the app needs. Run the quota check: usage now matches the standard totals. During a rollout every Deployment briefly runs two pods, which puts CPU requests near the quota, so arithmetic alone does not prove a rollout fits. On the bill: a smaller request changes scheduling and allocation, not necessarily the number of nodes, and model tokens are priced separately. "Evidence is insufficient" is a good answer if it names the measurement that would settle it. Do not submit another profile change.
+**Speaker notes:** Frame the question plainly: Module 4 moved concierge to the standard profile. Was that the right size, and would it change the bill? Open 📁 **Lab Root** > **evidence** > **profile-comparison.md** in the VS Code Explorer: it is calculated from the profile files, not measured, so it shows what was configured, not what the app needs. Run the quota check: usage now matches the standard totals. During a rollout every Deployment briefly runs two pods, which puts CPU requests near the quota, so arithmetic alone does not prove a rollout fits. On the bill: a smaller request changes scheduling and allocation, not necessarily the number of nodes, and model tokens are priced separately. "Evidence is insufficient" is a good answer if it names the measurement that would settle it. Do not submit another profile change.
 
 ### Slide 56: checkpoint, recovered and decided
 

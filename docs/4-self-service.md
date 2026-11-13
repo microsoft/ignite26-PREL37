@@ -38,10 +38,10 @@ Because every change goes through Git, there is one source of truth and one audi
 
 Instead of asking for CPU and memory numbers ("I need 400m CPU and 512Mi RAM"), the platform offers named choices: `small` or `standard`.
 
-| Profile    | The "Choice"                         | The Implementation (Platform Owned) |
-| :--------- | :----------------------------------- | :---------------------------------- |
-| `small`    | "I need a basic dev environment"     | 200m CPU, 256Mi RAM (per agent)     |
-| `standard` | "I need more headroom for my agents" | 400m CPU, 512Mi RAM (per agent)     |
+| Profile    | What the developer asks for          | What the platform sets          |
+| :--------- | :----------------------------------- | :------------------------------ |
+| `small`    | "I need a basic dev environment"     | 200m CPU, 256Mi RAM (per agent) |
+| `standard` | "I need more headroom for my agents" | 400m CPU, 512Mi RAM (per agent) |
 
 The platform team defines what these names mean in the platform repository (`profiles/workload-small.yaml` and `profiles/workload-standard.yaml`). Resource requests stay aligned with approved sizes, and developers cannot accidentally request more than the namespace quota allows.
 
@@ -82,7 +82,7 @@ You do not write a Backstage action, register the catalog, or wire output links.
 
 ### 1. Read the template you will change
 
-In VS Code, open `backstage/templates/ai-app/template.yaml` in the **Platform** folder. Find the `profile` property under `parameters`, marked with a `Module 4` comment:
+In the VS Code Explorer, expand 🏗️ **Platform** > **backstage** > **templates** > **ai-app** and open **template.yaml**. Find the `profile` property under `parameters`, marked with a `Module 4` comment:
 
 ```yaml
 profile:
