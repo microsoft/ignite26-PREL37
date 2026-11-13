@@ -545,7 +545,8 @@ In the VS Code Explorer, expand 📁 **Lab Root** > **answers** and open **produ
 
 Describe the developer, the recurring task, and one handoff, repeated action, or unclear convention the capability should remove.
 
-Stay with the supplied scenario for the build. You can relate it to your organization during discussion, but do not expand the implementation to another application or environment.
+> [!hint] Stay with the supplied scenario for the build. You can relate it to your organization during discussion, but do not expand the implementation to another application or environment.
+
 
 ### 2. State the promise and boundary
 
@@ -555,7 +556,8 @@ Write a short capability statement. For example:
 
 This is an illustrative statement to refine, not a measured customer finding.
 
-Add the platform owner, support route, exception route, and first non-goals. Describe an accountable team or role rather than an individual.
+> [!hint] Add the platform owner, support route, exception route, and first non-goals. Describe an accountable team or role rather than an individual.
+
 
 ### 3. Make the outcome observable
 
@@ -566,13 +568,15 @@ Write acceptance criteria in terms of things you can observe. Useful examples fo
 - An approved profile change reaches the running application after the learner reviews and manually merges a PR, without another team fulfilling it.
 - A rejected change points to a supported correction through Git.
 
-You are defining what to evaluate, not asserting these outcomes already passed.
+> [!hint] You are defining what to evaluate, not asserting these outcomes already passed.
+
 
 ### 4. Ask a baseline question
 
 Record one question about the current task: how much time is active work, how much is waiting, and where does the developer need help?
 
-Do not invent a starting duration or improvement percentage. If a baseline is unavailable, record how you would collect it. Any supplied organizational figures are illustrative unless explicitly labeled with a measured source.
+> [!hint] Do not invent a starting duration or improvement percentage. If a baseline is unavailable, record how you would collect it. Any supplied organizational figures are illustrative unless explicitly labeled with a measured source.
+
 
 ## Discuss: which inputs belong in the request?
 
@@ -593,7 +597,7 @@ For this workshop, the developer chooses an approved workload profile. The platf
 
 You will see each answer again in the build: `costCenter` becomes a required contract field in Module 2, identity and placement come from the platform's binding in Module 3, the profile is the only Backstage choice in Module 4, and image policy rejects `latest` in Module 5.
 
-**Takeaway:** list the last ten requests your platform team handled by hand. Group them by developer task. The largest group with a short list of safe answers is a good first capability; write its promise in one sentence before choosing any tool.
+> [!knowledge] **Takeaway:** list the last ten requests your platform team handled by hand. Group them by developer task. The largest group with a short list of safe answers is a good first capability; write its promise in one sentence before choosing any tool.
 
 ## Checkpoint
 
@@ -601,7 +605,8 @@ You have a capability statement, owner and boundaries, observable acceptance cri
 
 You have not wired provider access, applied any manifests, or created the namespace or application. That is the expected fresh state. Continue to Module 2 to connect the prepared installation; do not wait for an API that has not been delivered. If resuming an existing instance, preserve its later progress rather than removing resources to match this checkpoint.
 
-**What you learned:** an internal developer platform is valuable when it completes a developer task, not because it exposes a large number of tools.
+> [!knowledge] **What you learned:** an internal developer platform is valuable when it completes a developer task, not because it exposes a large number of tools.
+
 
 ===
 
@@ -621,7 +626,8 @@ After reading, you will be able to:
 
 > [!knowledge] **Platform concept: build the product, not the plumbing.** In Module 1 you wrote a promise. Every hour spent patching nodes, wiring ingress, or rotating credentials is an hour not spent keeping it. Choose a foundation that already handles the undifferentiated work, then spend your effort on the contract and the golden path.
 
-No infrastructure changes happen here. This page explains choices that are already made in `infra/main.tf`, which you can read in the VS Code Explorer under 📁 **Lab Root** > **setup** > **infra**.
+> [!note] No infrastructure changes happen here. This page explains choices that are already made in `infra/main.tf`, which you can read in the VS Code Explorer under 📁 **Lab Root** > **setup** > **infra**.
+
 
 <a id="from-promise-to-foundation"></a>
 
