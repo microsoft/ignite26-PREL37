@@ -1454,7 +1454,7 @@ kubectl --context "$AKS_CONTEXT" -n "$TEAM" get deployments,pods,services,httpro
 
 > [!knowledge] **See it in the UI.** In Argo CD (+++https://localhost:8443+++), select the `fourth-coffee` tile. It moves from **Progressing** to **Healthy** as the three Deployments roll out, and the resource tree shows each Deployment, ReplicaSet, and pod.
 >
-> ![Argo CD fourth-coffee application tree with three Deployments Healthy](https://placehold.co/600x400){600}
+> !IMAGE[Argo CD fourth-coffee application tree with three Deployments Healthy](instructions359547/m8k6n56u.png)
 
 <a id="6-open-the-application-through-the-gateway"></a>
 
