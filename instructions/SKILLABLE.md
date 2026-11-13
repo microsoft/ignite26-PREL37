@@ -1505,7 +1505,7 @@ Telemetry timestamps are in UTC, so this gives you a time to compare against.
 
 Selecting another drink on the board, or typing an order, can get a clarifying reply such as _Double includes 2 shots._ instead of a draft, and the ticket stays empty. If that happens, select **Surprise me**. In a narrow browser window, such as the lab VM's, the order ticket sits below the chat; scroll down to find it, or zoom out with **Ctrl+minus** until the three columns sit side by side. Use synthetic information only.
 
-![Fourth Coffee chat with a barista reply, a drink on the Order ticket, and the Confirm and brew button](https://placehold.co/600x400){600}
+!IMAGE[Fourth Coffee chat with a barista reply, a drink on the Order ticket, and the Confirm and brew button](instructions359547/1ota0iox.png)
 
 **3. Find your model call.** The agents send authenticated OTLP requests directly to Azure Monitor's cloud ingestion endpoints. The Application Insights DCR routes spans to `OTelSpans` in the lab's Log Analytics workspace, attributed to your Application Insights resource. Allow a few minutes for ingestion, then stay in your **main VS Code terminal** and leave the tunnel running. Run the following:
 
@@ -1743,7 +1743,7 @@ Backstage reads the template from GitHub and re-checks it every few minutes. Ref
 
 **Expected result:** the dropdown offers `small` and `standard`, with `small` selected, and the help text reads "Choose using demand evidence. Standard has higher app requests and memory limits; namespace quota is unchanged."
 
-![Backstage Resize an application form with the Resource profile dropdown open, showing small and standard](https://placehold.co/600x400){600}
+!IMAGE[Backstage Resize an application form with the Resource profile dropdown open, showing small and standard](instructions359547/0jbgq80s.png)
 
 If you still see "Choose the small profile.", wait a minute, reload the page, and select **Refresh** again. If it persists, use [Backstage troubleshooting](#backstage-shows-an-old-template-or-no-usable-result).
 
