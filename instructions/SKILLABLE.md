@@ -854,7 +854,21 @@ A merged PR means the request is **accepted**. Creating the namespace and Azure 
 
 Setup installed the controllers. In this section you connect them so the platform can run without your personal login.
 
-**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
+> [+help] New terminal?
+>
+> Load your environment first. Every command depends on `~/prel37/config/lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run:
+>
+> ```sh
+> source ~/prel37/config/lab.env
+> ```
+>
+> Then 
+>
+> ```sh
+> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
+> ```
+>
+> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Check that the controllers and credentials are ready
 
@@ -1289,7 +1303,21 @@ The prepared query in `queries/application-model-call.kql` joins each chat reque
 
 **15 minutes.**
 
-**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
+> [+help] New terminal?
+>
+> Load your environment first. Every command depends on `~/prel37/config/lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run:
+>
+> ```sh
+> source ~/prel37/config/lab.env
+> ```
+>
+> Then 
+>
+> ```sh
+> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
+> ```
+>
+> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Read the binding from your environment
 
@@ -1646,7 +1674,21 @@ You do not write a Backstage action, register the catalog, or wire output links.
 
 **15 minutes.**
 
-**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
+> [+help] New terminal?
+>
+> Load your environment first. Every command depends on `~/prel37/config/lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run:
+>
+> ```sh
+> source ~/prel37/config/lab.env
+> ```
+>
+> Then 
+>
+> ```sh
+> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
+> ```
+>
+> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Read the template you will change
 
@@ -1961,7 +2003,21 @@ kubectl --context "$AKS_CONTEXT" -n "$TEAM" logs -l app.kubernetes.io/part-of="$
 
 **15 minutes.**
 
-**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
+> [+help] New terminal?
+>
+> Load your environment first. Every command depends on `~/prel37/config/lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run:
+>
+> ```sh
+> source ~/prel37/config/lab.env
+> ```
+>
+> Then 
+>
+> ```sh
+> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
+> ```
+>
+> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Make the unsafe change
 
@@ -2442,7 +2498,21 @@ In step 8 you compare `beans-dev` and `beans-prod`. Two environments on the same
 
 ## Guided practice: request, approve, and use the next environment
 
-**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
+> [+help] New terminal?
+>
+> Load your environment first. Every command depends on `~/prel37/config/lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run:
+>
+> ```sh
+> source ~/prel37/config/lab.env
+> ```
+>
+> Then 
+>
+> ```sh
+> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
+> ```
+>
+> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Read the template
 
