@@ -145,7 +145,7 @@ Regarding access, you will not need administrator permissions for either Microso
 > [!TIP]
 > To avoid confusion, we highly recommend renaming your terminals. In Windows Terminal, you can right-click a tab and select **Rename tab**. In VS Code, you can open the command palette (**Ctrl+Shift+P**) and run **Terminal: Rename**.
 
-![Windows Terminal with three renamed Ubuntu tabs, and VS Code with two named terminals](https://placehold.co/600x400){600}
+!IMAGE[Windows Terminal with three renamed Ubuntu tabs](instructions359547/sn4cz1g1.png)
 
 ===
 
@@ -161,15 +161,19 @@ Open Microsoft Edge and sign in to Azure at +++https://portal.azure.com+++. Use 
 
 ### Setup 2: Sign in to GitHub
 
-In the same browser, sign in to your provided GitHub account through SSO at +++https://github.com/enterprises/skillable-events/sso+++. Do this after Setup 1: SSO uses your Azure sign-in, so GitHub signs you in without asking for anything else. Your account is named `User1-@lab.LabInstance.Id_events`, and your lab ID is @lab.LabInstance.Id.
+In the same browser, sign in to your provided GitHub account through SSO at +++https://github.com/enterprises/skillable-events/sso+++. Do this after signing in to Azure: SSO uses your Azure sign-in, so GitHub signs you in without asking for anything else. Your account is named `User1-@lab.LabInstance.Id_events`, and your lab ID is `@lab.LabInstance.Id`.
 
 ### Setup 3: Open Terminal 1
 
-Open the Ubuntu profile in Windows Terminal, or run this from PowerShell. This tab is **Terminal 1 (setup)**:
+Open the Ubuntu profile in Windows Terminal.
 
-```powershell
-wsl
-```
+> [!hint] Windows terminal should default to Ubuntu on Windows Subsystem for Linux (WSL). If not you can run the following command from PowerShell:
+>
+> ```powershell
+> wsl
+> ```
+
+Rename this tab to **Terminal 1 (setup)**.
 
 ### Setup 4: Set the workspace paths
 
@@ -181,7 +185,8 @@ export LAB_SOURCE="$PWD"
 export LAB_ROOT="$HOME/prel37"
 ```
 
-If this directory is missing, ask a proctor. You do not need to clone the upstream workshop repository.
+> [!alert] If this directory is missing, ask a proctor. You do not need to clone the upstream workshop repository.
+
 
 <a id="check-the-assigned-accounts-in-wsl"></a>
 
@@ -197,9 +202,9 @@ First, sign in to Azure:
 az login --use-device-code
 ```
 
-Open the sign-in page that `az` prints in Edge, enter the code, and sign in with the same account as before. When `az` asks you to **Select a subscription and tenant**, press **Enter** to keep the default, which is the lab subscription.
+Copy the code then open the sign-in page that `az` prints in Edge, enter the code, and sign in with the same account as before. When `az` asks you to **Select a subscription and tenant**, press **Enter** to keep the default, which is the lab subscription.
 
-Next, sign in to GitHub:
+Next, sign in to GitHub CLI:
 
 ```bash
 gh auth login --hostname github.com --git-protocol https --web
@@ -214,8 +219,6 @@ az account show --query '{subscription:id,tenant:tenantId}' -o table
 gh auth status
 ```
 
-Do not use personal Azure credentials. The bundle's `make setup` checks that the active tenant and subscription match the provisioned outputs and stops if they do not.
-
 <a id="prepare-the-learner-workspace"></a>
 
 ### Setup 6: Prepare the learner workspace
@@ -228,7 +231,8 @@ This one command reads the provisioned Terraform outputs, connects to both clust
 make setup
 ```
 
-If setup reports that no Terraform state exists and prepares only the VM, stop and ask a proctor to check `C:\terraform\terraform.tfstate`. Do not proceed until the learner environment has been configured.
+> [!alert] If setup reports that no Terraform state exists and prepares only the VM, stop and ask a proctor to check `C:\terraform\terraform.tfstate`. Do not proceed until the learner environment has been configured.
+
 
 Setup asks four questions, in this order:
 
@@ -237,7 +241,14 @@ Setup asks four questions, in this order:
 3. **Git Author Name:** enter your GitHub account name, `User1-@lab.LabInstance.Id_events`.
 4. **Git Author Email:** enter the email you used to sign in to Azure and GitHub, which is the **Username** on the **Resources** tab.
 
-Setup is done when you see **WORKSHOP FILES AND PLATFORM PACKAGES READY**. The summary on screen lists the next steps, which follow in this guide. If setup stops with an error, fix the cause and rerun `make setup`; it picks up where it stopped. Setup saves your answers in `$LAB_ROOT/config/setup.env`, so to enter them again, delete that file first with `rm "$LAB_ROOT/config/setup.env"`. If you gave the wrong GitHub username or answered `y` to the organization question, ask a proctor before you rerun setup.
+> [!hint] Setup is done when you see **WORKSHOP FILES AND PLATFORM PACKAGES READY**.
+> 
+> The summary on screen lists the next steps, which follow in this guide. If setup stops with an error, fix the cause and rerun `make setup`; it picks up where it stopped.
+>
+> Setup saves your answers in `$LAB_ROOT/config/setup.env`, so to enter them again, delete that file first with `rm "$LAB_ROOT/config/setup.env"`.
+>
+> If you gave the wrong GitHub username or answered `y` to the organization question, ask a proctor before you rerun setup.
+
 
 Now load your environment variables:
 
@@ -251,7 +262,7 @@ source "$LAB_ROOT/config/lab.env"
 
 In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-@lab.LabInstance.Id_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own. 
 
-![GitHub fine-grained token page with Resource owner set, Only select repositories chosen, and both lab repositories ticked](https://placehold.co/600x400){600}
+!IMAGE[GitHub fine-grained token page with Resource owner set, Only select repositories chosen, and both lab repositories ticked](instructions359547/3mdutgk2.png)
 
 > [!alert] GitHub shows each token **only once**. As you create each token, paste it into its text box below. The saved values are repeated below so you can copy them when `make auth` prompts.
 
@@ -266,7 +277,7 @@ In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and 
 1. **Token name:** +++prel37-backstage+++
 2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**. 
 
-![GitHub token permissions panel with Contents and Pull requests set to Read and write, and Commit statuses set to Read-only](https://placehold.co/600x400){600}
+!IMAGE[GitHub token permissions panel with Contents and Pull requests set to Read and write, and Commit statuses set to Read-only](instructions359547/qhar49p4.png)
 
 4. Copy and paste the token here: @lab.TextBox(prel37-write-token)
 
@@ -285,14 +296,16 @@ Paste each token when prompted, the read token first. In WSL, paste with **Ctrl+
 
 If you need to copy a token again, use the values saved in the text boxes:
 
-- prel37-read token: `@lab.Variable(prel37-read-token)`
-- prel37-backstage token: `@lab.Variable(prel37-write-token)`
+- GitHub read PAT (Contents: Read-only): `@lab.Variable(prel37-read-token)`
+- GitHub Backstage PAT (Contents + Pull requests: Read and write, Commit statuses: Read-only): `@lab.Variable(prel37-write-token)`
 
 <a id="start-backstage-and-argo-cd"></a>
 
 ### Setup 8: Start Backstage and Argo CD
 
-**Run in:** Terminal 2 (Backstage), a new Ubuntu tab in Windows Terminal. Leave it running.
+**Run in:** Terminal 2 (Backstage)
+
+In Windows Terminal, create a new a new Ubuntu tab and rename it to `Terminal 2 (Backstage)`:
 
 Start Backstage:
 
@@ -304,7 +317,9 @@ make backstage
 
 > [!alert] **Keep this terminal running.** Don't press Ctrl+C or type in this terminal again. Later modules need it. If it stops, restart it with the same commands.
 
-**Run in:** Terminal 3 (Argo CD), a new Ubuntu tab in Windows Terminal. Leave it running.
+**Run in:** Terminal 3 (Argo CD), a new Ubuntu tab in Windows Terminal.
+
+In Windows Terminal, create a new a new Ubuntu tab and rename it to `Terminal 3 (Argo CD)`:
 
 Start the Argo CD tunnel:
 
@@ -316,9 +331,9 @@ make argocd
 
 > [!alert] **Keep this terminal running.** Don't press Ctrl+C or type in this terminal again. Later modules need it. If it stops, restart it with the same commands; `make argocd` prints the `admin` password again.
 
-Confirm +++http://localhost:3000+++ displays Backstage and select **Enter** as the guest user. The first start compiles Backstage and can take a few minutes, so wait for the page to load. Open +++https://localhost:8443+++, accept the local certificate warning, and sign in as `admin` with the password printed by `make argocd`.
+Confirm +++http://localhost:3000+++ displays Backstage and select **Enter** as the guest user. The first start compiles Backstage and can take a few minutes, so wait for the page to load. 
 
-![Backstage guest sign-in page with the Enter button](https://placehold.co/600x400){600}
+Open +++https://localhost:8443+++, accept the local certificate warning, and sign in as `admin` with the password printed by `make argocd`.
 
 <a id="configure-the-vs-code-workspace"></a>
 
@@ -336,23 +351,27 @@ code "$LAB_ROOT/prel37.code-workspace"
 
 Confirm VS Code is connected to WSL: the bottom-left corner of the window shows **WSL** and the name of your Linux distribution.
 
-![VS Code with the WSL: Ubuntu indicator in the bottom-left corner and the three workspace folders in the Explorer](https://placehold.co/600x400){600}
+!IMAGE[VS Code with the WSL: Ubuntu indicator in the bottom-left corner and the three workspace folders in the Explorer](instructions359547/6xpcxz93.png)
 
 <a id="open-the-prepared-workspace"></a>
 
-## Open the prepared workspace
+## Getting familiar with the prepared workspace
 
-Use this section to confirm the workspace, and again whenever you open a new terminal.
+Use this section to confirm the workspace.
 
 ### 1. Open the workspace in VS Code
 
-If it is not already open, run this in Terminal 1 (setup), or any WSL terminal:
+> [+alert] If it is not already open
+> 
+> Run this in Terminal 1 (setup), or any WSL terminal:
+> 
+> ```bash
+> code "$HOME/prel37/prel37.code-workspace"
+> ```
+> 
+> Open the workspace this way rather than with **File** > **Open Workspace from File**, because a VS Code window that isn't connected to WSL can't see `~/prel37`. 
 
-```bash
-code "$HOME/prel37/prel37.code-workspace"
-```
-
-Open the workspace this way rather than with **File** > **Open Workspace from File**, because a VS Code window that isn't connected to WSL can't see `~/prel37`. The Explorer shows three folders:
+The Explorer shows three folders:
 
 | Workspace folder | Path on disk          | What it holds                                                                               |
 | ---------------- | --------------------- | ------------------------------------------------------------------------------------------- |
@@ -360,13 +379,19 @@ Open the workspace this way rather than with **File** > **Open Workspace from Fi
 | 🏗️ Platform      | `~/prel37/platform`   | Your private platform repository: API, composition, OpenTofu module, profiles, and template |
 | 🚀 App-Deploy    | `~/prel37/app-deploy` | Your private application delivery repository, watched by Argo CD                            |
 
-If VS Code or the workspace file is missing, ask a proctor.
+> [!alert] If VS Code or the workspace file is missing, ask a proctor.
 
 For what each file in Lab Root is for, see [Find the working files](#find-the-working-files).
 
 ### 2. Load your environment in the terminal
 
-Open the command palette (**View** > **Command Palette** or **Ctrl+Shift+P**) and type `Terminal: Create New Terminal in Editor Area`. If VS Code asks which folder to use, choose **Lab Root**. This is your **VS Code terminal**, where you run every module command from Module 2 onward.
+Open the command palette (**View** > **Command Palette** or **Ctrl+Shift+P**) and type `Terminal: Create New Terminal in Editor Area`. 
+
+!IMAGE[Create new terminal in editor area](instructions359547/o77rydlo.png)
+
+> [!hint] If VS Code asks which folder to use, choose **Lab Root**. This is your **VS Code terminal**, where you run every module command from Module 2 onward.
+
+You'll be using VS Code terminal for the rest of the lab. Run the following commands to ensure you have all the necesary environment variables loaded and Kubernetes clusters are available.
 
 ```bash
 source ~/prel37/config/lab.env
@@ -376,9 +401,12 @@ kubectl config get-contexts -o name
 
 **Expected result:** the echo prints `/home/labuser/prel37 beans fourth-coffee beans-dev` (your home path varies), and the contexts list includes `prel37-control` and `prel37-workload`.
 
-`lab.env` sets `LAB_ROOT`, `KUBECONFIG`, both cluster contexts, the application team names, and your Azure resource IDs. Every later command depends on it, so rerun the `source` line in any new terminal.
+> [!hint] The `~/prel37/config/lab.env` file helps you set `LAB_ROOT`, `KUBECONFIG`, both cluster contexts, the application team names, and your Azure resource IDs. Every later command depends on it, so rerun the `source` line in any new terminal if you loose environment variables.
+
 
 ### 3. Check the local services
+
+Here is the list of local services you will be working with throughout the workshop.
 
 | Endpoint                      | What you should see                                                                      |
 | ----------------------------- | ---------------------------------------------------------------------------------------- |
@@ -388,7 +416,7 @@ kubectl config get-contexts -o name
 
 If Backstage or Argo CD does not load, the local service is not running or its tunnel dropped. Rerun `make backstage` or `make argocd` as shown in [Start Backstage and Argo CD](#start-backstage-and-argo-cd); `make argocd` prints the `admin` password again. Ask a proctor if restarting does not resolve it.
 
-At this point Argo CD shows no applications and `beans` does not exist. You create both in Module 2.
+> [!note] At this point Argo CD shows no applications and `beans` does not exist. You create both in Module 2.
 
 **Setup checklist:** tick each item before Module 1.
 
@@ -403,30 +431,40 @@ At this point Argo CD shows no applications and `beans` does not exist. You crea
 
 ## How each module works
 
-Each module starts with its objectives and platform concept, explains and demonstrates the idea, then walks you through numbered steps. Each step says what to do and gives the **Expected result**. If what you see doesn't match, stop and check before you move on. Each module ends with a debrief and a checkpoint.
+Each module is designed to lead you from theory to practice. The flow is always the same:
+**Objectives & Concepts** --> **Demonstration** --> **Numbered Steps** --> **Debrief & Checkpoint**.
 
-Most waits are reconciliation: a controller noticing a change and acting on it. Each module tells you how long to expect and how to ask Argo CD to check Git immediately instead of waiting for its next poll.
+Every step includes an **Expected result**. If your output doesn't match, please pause and investigate the discrepancy before moving forward.
 
-Three conventions keep the steps predictable:
+### A note on "Reconciliation"
+You will notice occasional pauses between steps. This is "reconciliation"—the time it takes for a controller to detect a change and act upon it. We have included estimated wait times in the guide, along with instructions on how to prompt Argo CD to sync with Git immediately if you prefer not to wait.
 
-- **Read files in VS Code.** When a step says _In VS Code, open `api/xrd.yaml` (Platform folder)_, use the Explorer to open the file and read it. You can click around and explore.
-- **Make changes in the terminal.** Edits, Git, and GitHub actions are terminal commands you copy and run. This keeps every learner's change identical and reviewable. Do not also edit the same file in VS Code; if you do, `git --no-pager diff` shows exactly what changed so you can fix it.
-- **Check the Run in line.** Steps that use a terminal start with **Run in:** followed by the terminal name from [Your terminals at a glance](#your-terminals-at-a-glance) and, when it matters, the repository folder. If you are not in that terminal, switch before you paste.
+### Three workflow conventions
+To keep the lab predictable, we follow these three rules:
+
+*   **Read files in VS Code.** When a step asks you to review a file (e.g., *In VS Code, open `api/xrd.yaml`*), use the Explorer to open it. We encourage you to explore the directory structure to better understand the project.
+*   **Make changes in the terminal.** To ensure all changes are identical and reviewable, all edits and Git operations are performed via terminal commands. Avoid editing these files directly in the editor. If you do, use `git --no-pager diff` to find and fix the discrepancy.
+*   **Verify the "Run in" line.** Every terminal step starts with a **Run in:** line specifying the correct terminal and repository folder. Always verify this before pasting a command.
 
 ### Git habits
+All changes are managed via pull requests (PRs) using the VS Code terminal. To avoid common pitfalls, please adopt these four habits:
 
-Every change in this lab goes through a pull request (PR) that you open, review, and merge yourself from the VS Code terminal. Each step gives you the exact commands. Four habits avoid surprises:
+*   **Use `git --no-pager`** for `git diff` and `git log`. This prevents Git from opening a "pager" (like `less`) that can trap your input. If you see a `:` prompt or an `(END)` marker, press **q** to return to the shell.
+*   **Treat `gh` commands as final.** Run `gh pr create` and `gh pr merge` as the last command in a block. Wait for the command to finish before moving to the next block to avoid dropped keystrokes.
+*   **Stage only specified files.** Only stage the files explicitly mentioned. Avoid `git add .` or force-pushing. If `git status --short` shows unexpected changes, stop and ask for help.
+*   **Merged $\neq$ Delivered.** A merged PR is not a deployed change. After every merge, confirm that Argo CD has successfully synced the commit and that the resources are correctly configured.
 
-- **Use `git --no-pager`** for `git diff` and `git log`. Without it, Git opens a pager (`less`) when the output is long, and anything you type next goes to the pager instead of the shell. If you see a `:` prompt or a `(END)` marker, press **q** to leave it.
-- **Run `gh pr create` and `gh pr merge` as the last command in a block.** `gh` can discard keystrokes that arrive while it is running, so wait for it to finish before you type the next command. The guide puts the commands that follow in their own block.
-- **Stage only the files the step names.** Do not run `git add .`, force-push, or bypass branch checks. If `git status --short` shows unexpected changes before you branch, stop and ask for help rather than discarding them.
-- **Merged is not the same as delivered.** After every merge, confirm that Argo CD synced the merged commit and that the resulting resources look right. A healthy app at an old revision does not prove your change worked.
+For a detailed walkthrough of this pattern, see [Appendix B](#git-workflow-used-throughout).
 
-The full branch-to-merge pattern is in [Appendix B](#git-workflow-used-throughout).
+### Recording your results
+Please use `answers/product-brief.md` in the Lab Root folder as your sole worksheet. **Important:** VS Code does not autosave in this environment, so remember to press **Ctrl+S** after each entry.
 
-### Record your results
+For every checkpoint, record:
+1. The PR or request ID and the merged revision.
+2. Your observations.
+3. Your completion status (**independently**, **assisted**, **demonstration-only**, or **blocked**).
 
-Use `answers/product-brief.md` (Lab Root folder) as your only worksheet. VS Code does not autosave in this lab, so press **Ctrl+S** after each entry. For each checkpoint, record the PR or request, the merged revision, what you observed, and whether you completed it **independently**, **assisted**, **demonstration-only**, or **blocked**. Mark evidence that has not arrived as pending rather than passed. Use synthetic inputs only; do not paste credentials or raw telemetry.
+If evidence has not yet appeared, mark the item as "pending" rather than "passed." Please use synthetic data only; do not paste actual credentials or raw telemetry into the document.
 
 ===
 
