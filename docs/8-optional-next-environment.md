@@ -45,9 +45,9 @@ In step 8 you compare `beans-dev` and `beans-prod`. Two environments on the same
 
 ### 1. Read the template
 
-In VS Code, open `backstage/templates/app-environment/template.yaml` (**Platform** folder). Read the `parameters`, then the five `steps`. Then open the three files under `backstage/templates/app-environment/skeleton/`.
+In the VS Code Explorer, expand 🏗️ **Platform** > **backstage** > **templates** > **app-environment** and open **template.yaml**. Read the `parameters`, then the five `steps`. Then expand **skeleton** in the same folder and open its three files.
 
-Compare `skeleton/platform/requests/${{values.team}}.yaml` with your own `requests/beans-dev.yaml`. They have the same fields. The only difference is that Backstage fills them in. Compare `skeleton/app-deploy/apps/${{values.application}}/values.yaml` with `apps/fourth-coffee/values.yaml` (**App-Deploy** folder). The `platform-context` name you copied from the binding in Module 3 is the same in every environment, so the template can write it for you. The platform assigns the agent ServiceAccounts in every environment, so the template does not mention them.
+Compare `skeleton/platform/requests/${{values.team}}.yaml` with your own `requests/beans-dev.yaml`. They have the same fields. The only difference is that Backstage fills them in. Compare `skeleton/app-deploy/apps/${{values.application}}/values.yaml` with 🚀 **App-Deploy** > **apps** > **fourth-coffee** > **values.yaml**. The `platform-context` name you copied from the binding in Module 3 is the same in every environment, so the template can write it for you. The platform assigns the agent ServiceAccounts in every environment, so the template does not mention them.
 
 ### 2. Find your Entra object ID
 

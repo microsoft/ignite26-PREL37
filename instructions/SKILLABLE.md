@@ -12,16 +12,15 @@ An application team needs a supported place to run an applications, a safe way t
 
 In this workshop you will:
 
-- wire the platform's provisioning and delivery paths 
+- wire the platform's provisioning and delivery paths
 - tighten an environment contract
 - connect a supplied agent application to platform-provided identity and configuration
 - publish a constrained self-service option within an internal developer platform (IDP)
 - recover from a rejected deployment
- 
+
 You finish by using operating evidence to choose the next platform improvement.
 
 > [!knowledge] Before we dive in, it's worth noting that the tools used in this workshop are intended to demonstrate one way of implementing these concepts, rather than the only way. The real goal here is to master the fundamentals: understanding what a platform team builds, the reasoning behind those choices, and how to determine if the platform is actually working. Each module is designed around a specific fundamental and concludes with a practical takeaway you can bring back to your own team.
-
 
 ## Platform engineering fundamentals you will practice
 
@@ -54,7 +53,6 @@ The platform is designed to support the `beans` application team and their [Four
 
 > [!hint] As you move through the exercises, please keep an eye on your identifiers. This lab is configured to use the team and namespace `beans`, the request `beans-dev`, and the application `fourth-coffee`. If you see different names in your environment, please stop where you are and let a proctor know.
 
-
 A single environment request, `beans-dev`, provisions everything the team needs to get started:
 
 - A managed AKS namespace named `beans`, configured with the necessary quotas and default policies.
@@ -69,10 +67,10 @@ Throughout this workshop, you will be acting as a platform engineer, though you'
 
 To maintain a clean separation between the tools that manage the platform and the applications that run on it, the workshop architecture utilizes two distinct clusters. This separation of concerns ensures that the management plane—where your orchestration and infrastructure tools reside—remains isolated from the workload plane, where the actual application namespaces and gateways are deployed.
 
-| Cluster | Role | Kubeconfig context |
-| :--- | :--- | :--- |
-| **AKS Standard (Control)** | This cluster hosts the management plane, including Argo CD, Crossplane, the OpenTofu provider, and composition functions. It is also where the Argo CD Application objects reside. | `$CONTROL_CONTEXT` |
-| **AKS Automatic (Workload)** | This cluster serves as the workload plane, hosting the Shared Gateway, admission policies (such as Deployment Safeguards), and the application namespaces created by environment requests. | `$AKS_CONTEXT` |
+| Cluster                      | Role                                                                                                                                                                                       | Kubeconfig context |
+| :--------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------- |
+| **AKS Standard (Control)**   | This cluster hosts the management plane, including Argo CD, Crossplane, the OpenTofu provider, and composition functions. It is also where the Argo CD Application objects reside.         | `$CONTROL_CONTEXT` |
+| **AKS Automatic (Workload)** | This cluster serves as the workload plane, hosting the Shared Gateway, admission policies (such as Deployment Safeguards), and the application namespaces created by environment requests. | `$AKS_CONTEXT`     |
 
 > [!hint] To ensure there is no confusion between the two environments, every `kubectl` command in this guide explicitly includes the `--context` flag. This way, you always know exactly which cluster you are interacting with. Please note that every participant is provided with their own dedicated pair of clusters.
 
@@ -95,29 +93,29 @@ In Module 2, you will handle the "wiring" of the platform. This includes configu
 As you progress, you will use GitOps workflows to implement several key changes through pull requests. These include adding a required `costCenter` field, submitting an environment request, binding the application to platform-provided identity and configuration, selecting a Backstage profile, and managing a rejected image change to practice recovery.
 
 > [!alert] What's out of scope
-> 
+>
 > To keep the workshop focused, you will not be required to install controllers, build images, write a full Composition from scratch, or create identities by hand. Additionally, please be aware that this lab does not include certain production-grade components such as Prometheus, Grafana, Azure Container Registry, an AI gateway, a production environment, cert-manager, external-dns, or Key Vault.
 
 ## Workshop Roadmap
 
 To get the most out of this session, please follow the modules in the order presented. Because each module builds upon the environment created in the previous one, skipping a step may lead to configuration errors in later exercises.
 
-| Time | Module | Objective |
-| :--- | :--- | :--- |
-| 00:00-00:35 | [1. Define the developer promise](#module-1-define-the-developer-promise) | Identify the core developer tasks, supported choices, and ownership models, and determine how to measure success. |
-| 00:35-01:15 | [2. Implement the environment contract](#module-2-implement-the-environment-contract) | Wire the platform components, implement cost attribution within the API, and provision the `beans` environment. |
-| 01:15-01:25 | **Break** | — |
-| 01:25-02:05 | [3. Connect and deploy the application](#module-3-connect-and-deploy-the-application) | Bind the application to platform identity and configuration, deploy via GitOps, and trace a model call. |
-| 02:05-02:45 | [4. Complete the self-service interface](#module-4-complete-the-self-service-interface) | Enhance Backstage with constrained profile choices and use them to update the running application. |
-| 02:45-02:55 | **Break** | — |
+| Time        | Module                                                                                                    | Objective                                                                                                            |
+| :---------- | :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
+| 00:00-00:35 | [1. Define the developer promise](#module-1-define-the-developer-promise)                                 | Identify the core developer tasks, supported choices, and ownership models, and determine how to measure success.    |
+| 00:35-01:15 | [2. Implement the environment contract](#module-2-implement-the-environment-contract)                     | Wire the platform components, implement cost attribution within the API, and provision the `beans` environment.      |
+| 01:15-01:25 | **Break**                                                                                                 | —                                                                                                                    |
+| 01:25-02:05 | [3. Connect and deploy the application](#module-3-connect-and-deploy-the-application)                     | Bind the application to platform identity and configuration, deploy via GitOps, and trace a model call.              |
+| 02:05-02:45 | [4. Complete the self-service interface](#module-4-complete-the-self-service-interface)                   | Enhance Backstage with constrained profile choices and use them to update the running application.                   |
+| 02:45-02:55 | **Break**                                                                                                 | —                                                                                                                    |
 | 02:55-03:40 | [5. Recover, inspect telemetry, and evaluate cost](#module-5-recover-inspect-telemetry-and-evaluate-cost) | Experience a guardrail rejecting an unsafe change, perform a recovery via Git, and make a data-driven cost decision. |
-| 03:40-04:00 | [6. Plan the next platform milestone](#module-6-plan-the-next-platform-milestone) | Select the next platform improvement and define the evidence required to prove its success. |
+| 03:40-04:00 | [6. Plan the next platform milestone](#module-6-plan-the-next-platform-milestone)                         | Select the next platform improvement and define the evidence required to prove its success.                          |
 
 ### Additional Resources and Optional Exercises
 
 If you have a few minutes between Modules 1 and 2, or during a break, we highly recommend reading the [foundation interlude](#interlude-choose-the-foundation-for-the-promise). It provides a deeper dive into why the platform is split between AKS Standard and AKS Automatic.
 
-For those who finish Module 6 with at least 35 minutes remaining on their lab timer, there is an [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage) that demonstrates how to provision a second environment using a single Backstage form. 
+For those who finish Module 6 with at least 35 minutes remaining on their lab timer, there is an [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage) that demonstrates how to provision a second environment using a single Backstage form.
 
 Finally, the [summary](#summary-and-take-home-material) serves as your primary take-home reference, and [Appendix A: troubleshooting](#appendix-a-troubleshooting-and-safe-recovery) is available if your results differ from the expected outcomes.
 
@@ -133,14 +131,13 @@ Regarding access, you will not need administrator permissions for either Microso
 
 > [!alert] To ensure a smooth experience, it is important to use the correct terminal for each task. Running commands in the wrong context is one of the most common causes of confusion in this lab. To help you stay on track, every critical step in the guide begins with a **Run in:** line that specifies exactly which terminal—and, where necessary, which folder—you should be using.
 
-
-| Name | Location | Primary Purpose | Status |
-| :--- | :--- | :--- | :--- |
-| **Terminal 1 (Setup)** | Ubuntu (WSL) tab in Windows Terminal | Initial sign-ins, `make setup`, `make auth`, and launching VS Code. | Keep open, though you will rarely return to it. |
-| **Terminal 2 (Backstage)** | Second Ubuntu tab | Running `make backstage` to host the portal at `http://localhost:3000`. | Keep open; no further input is required here. |
-| **Terminal 3 (Argo CD)** | Third Ubuntu tab | Running `make argocd` to host the UI at `https://localhost:8443`. | Keep open; no further input is required here. |
-| **VS Code Terminal** | Integrated terminal in VS Code (Lab Root) | The primary workspace for nearly every command from Module 2 onward. | Keep open; this is your main area of operation. |
-| **App Tunnel** | Second VS Code terminal (from Module 3, Step 6) | Establishing the Gateway port-forward to `http://beans.localhost:8080`. | Keep open; this is required for subsequent modules. |
+| Name                       | Location                                        | Primary Purpose                                                         | Status                                              |
+| :------------------------- | :---------------------------------------------- | :---------------------------------------------------------------------- | :-------------------------------------------------- |
+| **Terminal 1 (Setup)**     | Ubuntu (WSL) tab in Windows Terminal            | Initial sign-ins, `make setup`, `make auth`, and launching VS Code.     | Keep open, though you will rarely return to it.     |
+| **Terminal 2 (Backstage)** | Second Ubuntu tab                               | Running `make backstage` to host the portal at `http://localhost:3000`. | Keep open; no further input is required here.       |
+| **Terminal 3 (Argo CD)**   | Third Ubuntu tab                                | Running `make argocd` to host the UI at `https://localhost:8443`.       | Keep open; no further input is required here.       |
+| **VS Code Terminal**       | Integrated terminal in VS Code (📁 Lab Root)    | The primary workspace for nearly every command from Module 2 onward.    | Keep open; this is your main area of operation.     |
+| **App Tunnel**             | Second VS Code terminal (from Module 3, Step 6) | Establishing the Gateway port-forward to `http://beans.localhost:8080`. | Keep open; this is required for subsequent modules. |
 
 > [!TIP]
 > To avoid confusion, we highly recommend renaming your terminals. In Windows Terminal, you can right-click a tab and select **Rename tab**. In VS Code, you can open the command palette (**Ctrl+Shift+P**) and run **Terminal: Rename**.
@@ -187,7 +184,6 @@ export LAB_ROOT="$HOME/prel37"
 
 > [!alert] If this directory is missing, ask a proctor. You do not need to clone the upstream workshop repository.
 
-
 <a id="check-the-assigned-accounts-in-wsl"></a>
 
 ### Setup 5: Check the assigned accounts in WSL
@@ -233,7 +229,6 @@ make setup
 
 > [!alert] If setup reports that no Terraform state exists and prepares only the VM, stop and ask a proctor to check `C:\terraform\terraform.tfstate`. Do not proceed until the learner environment has been configured.
 
-
 Setup asks four questions, in this order:
 
 1. **GitHub Username:** press **Enter** to accept the detected account, `User1-@lab.LabInstance.Id_events`.
@@ -242,13 +237,12 @@ Setup asks four questions, in this order:
 4. **Git Author Email:** enter the email you used to sign in to Azure and GitHub, which is the **Username** on the **Resources** tab.
 
 > [!hint] Setup is done when you see **WORKSHOP FILES AND PLATFORM PACKAGES READY**.
-> 
+>
 > The summary on screen lists the next steps, which follow in this guide. If setup stops with an error, fix the cause and rerun `make setup`; it picks up where it stopped.
 >
 > Setup saves your answers in `$LAB_ROOT/config/setup.env`, so to enter them again, delete that file first with `rm "$LAB_ROOT/config/setup.env"`.
 >
 > If you gave the wrong GitHub username or answered `y` to the organization question, ask a proctor before you rerun setup.
-
 
 Now load your environment variables:
 
@@ -260,7 +254,7 @@ source "$LAB_ROOT/config/lab.env"
 
 ### Setup 7: Set up GitHub tokens
 
-In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-@lab.LabInstance.Id_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own. 
+In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-@lab.LabInstance.Id_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own.
 
 !IMAGE[GitHub fine-grained token page with Resource owner set, Only select repositories chosen, and both lab repositories ticked](instructions359547/3mdutgk2.png)
 
@@ -275,7 +269,7 @@ In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and 
 **Backstage token:**
 
 1. **Token name:** +++prel37-backstage+++
-2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**. 
+2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**.
 
 !IMAGE[GitHub token permissions panel with Contents and Pull requests set to Read and write, and Commit statuses set to Read-only](instructions359547/qhar49p4.png)
 
@@ -331,7 +325,7 @@ make argocd
 
 > [!alert] **Keep this terminal running.** Don't press Ctrl+C or type in this terminal again. Later modules need it. If it stops, restart it with the same commands; `make argocd` prints the `admin` password again.
 
-Confirm +++http://localhost:3000+++ displays Backstage and select **Enter** as the guest user. The first start compiles Backstage and can take a few minutes, so wait for the page to load. 
+Confirm +++http://localhost:3000+++ displays Backstage and select **Enter** as the guest user. The first start compiles Backstage and can take a few minutes, so wait for the page to load.
 
 Open +++https://localhost:8443+++, accept the local certificate warning, and sign in as `admin` with the password printed by `make argocd`.
 
@@ -362,14 +356,14 @@ Use this section to confirm the workspace.
 ### 1. Open the workspace in VS Code
 
 > [+alert] If it is not already open
-> 
+>
 > Run this in Terminal 1 (setup), or any WSL terminal:
-> 
+>
 > ```bash
 > code "$HOME/prel37/prel37.code-workspace"
 > ```
-> 
-> Open the workspace this way rather than with **File** > **Open Workspace from File**, because a VS Code window that isn't connected to WSL can't see `~/prel37`. 
+>
+> Open the workspace this way rather than with **File** > **Open Workspace from File**, because a VS Code window that isn't connected to WSL can't see `~/prel37`.
 
 The Explorer shows three folders:
 
@@ -385,11 +379,11 @@ For what each file in Lab Root is for, see [Find the working files](#find-the-wo
 
 ### 2. Load your environment in the terminal
 
-Open the command palette (**View** > **Command Palette** or **Ctrl+Shift+P**) and type `Terminal: Create New Terminal in Editor Area`. 
+Open the command palette (**View** > **Command Palette** or **Ctrl+Shift+P**) and type `Terminal: Create New Terminal in Editor Area`.
 
 !IMAGE[Create new terminal in editor area](instructions359547/o77rydlo.png)
 
-> [!hint] If VS Code asks which folder to use, choose **Lab Root**. This is your **VS Code terminal**, where you run every module command from Module 2 onward.
+> [!hint] If VS Code asks which folder to use, choose 📁 **Lab Root**. This is your **VS Code terminal**, where you run every module command from Module 2 onward.
 
 You'll be using VS Code terminal for the rest of the lab. Run the following commands to ensure you have all the necesary environment variables loaded and Kubernetes clusters are available.
 
@@ -402,7 +396,6 @@ kubectl config get-contexts -o name
 **Expected result:** the echo prints `/home/labuser/prel37 beans fourth-coffee beans-dev` (your home path varies), and the contexts list includes `prel37-control` and `prel37-workload`.
 
 > [!hint] The `~/prel37/config/lab.env` file helps you set `LAB_ROOT`, `KUBECONFIG`, both cluster contexts, the application team names, and your Azure resource IDs. Every later command depends on it, so rerun the `source` line in any new terminal if you loose environment variables.
-
 
 ### 3. Check the local services
 
@@ -437,29 +430,34 @@ Each module is designed to lead you from theory to practice. The flow is always 
 Every step includes an **Expected result**. If your output doesn't match, please pause and investigate the discrepancy before moving forward.
 
 ### A note on "Reconciliation"
+
 You will notice occasional pauses between steps. This is "reconciliation"—the time it takes for a controller to detect a change and act upon it. We have included estimated wait times in the guide, along with instructions on how to prompt Argo CD to sync with Git immediately if you prefer not to wait.
 
 ### Three workflow conventions
+
 To keep the lab predictable, we follow these three rules:
 
-*   **Read files in VS Code.** When a step asks you to review a file (e.g., *In VS Code, open `api/xrd.yaml`*), use the Explorer to open it. We encourage you to explore the directory structure to better understand the project.
-*   **Make changes in the terminal.** To ensure all changes are identical and reviewable, all edits and Git operations are performed via terminal commands. Avoid editing these files directly in the editor. If you do, use `git --no-pager diff` to find and fix the discrepancy.
-*   **Verify the "Run in" line.** Every terminal step starts with a **Run in:** line specifying the correct terminal and repository folder. Always verify this before pasting a command.
+- **Read files in VS Code.** When a step asks you to review a file (e.g., _In the VS Code Explorer, expand 🏗️ **Platform** > **api** and open **xrd.yaml**_), start at the top-level workspace folder named first (📁 **Lab Root**, 🏗️ **Platform**, or 🚀 **App-Deploy**), expand each folder in order, and open the file. We encourage you to explore the directory structure to better understand the project.
+- **Make changes in the terminal.** To ensure all changes are identical and reviewable, all edits and Git operations are performed via terminal commands. Avoid editing these files directly in the editor. If you do, use `git --no-pager diff` to find and fix the discrepancy.
+- **Verify the "Run in" line.** Every terminal step starts with a **Run in:** line specifying the correct terminal and repository folder. Always verify this before pasting a command.
 
 ### Git habits
+
 All changes are managed via pull requests (PRs) using the VS Code terminal. To avoid common pitfalls, please adopt these four habits:
 
-*   **Use `git --no-pager`** for `git diff` and `git log`. This prevents Git from opening a "pager" (like `less`) that can trap your input. If you see a `:` prompt or an `(END)` marker, press **q** to return to the shell.
-*   **Treat `gh` commands as final.** Run `gh pr create` and `gh pr merge` as the last command in a block. Wait for the command to finish before moving to the next block to avoid dropped keystrokes.
-*   **Stage only specified files.** Only stage the files explicitly mentioned. Avoid `git add .` or force-pushing. If `git status --short` shows unexpected changes, stop and ask for help.
-*   **Merged $\neq$ Delivered.** A merged PR is not a deployed change. After every merge, confirm that Argo CD has successfully synced the commit and that the resources are correctly configured.
+- **Use `git --no-pager`** for `git diff` and `git log`. This prevents Git from opening a "pager" (like `less`) that can trap your input. If you see a `:` prompt or an `(END)` marker, press **q** to return to the shell.
+- **Treat `gh` commands as final.** Run `gh pr create` and `gh pr merge` as the last command in a block. Wait for the command to finish before moving to the next block to avoid dropped keystrokes.
+- **Stage only specified files.** Only stage the files explicitly mentioned. Avoid `git add .` or force-pushing. If `git status --short` shows unexpected changes, stop and ask for help.
+- **Merged $\neq$ Delivered.** A merged PR is not a deployed change. After every merge, confirm that Argo CD has successfully synced the commit and that the resources are correctly configured.
 
 For a detailed walkthrough of this pattern, see [Appendix B](#git-workflow-used-throughout).
 
 ### Recording your results
-Please use `answers/product-brief.md` in the Lab Root folder as your sole worksheet. **Important:** VS Code does not autosave in this environment, so remember to press **Ctrl+S** after each entry.
+
+Please use 📁 **Lab Root** > **answers** > **product-brief.md** in the VS Code Explorer as your sole worksheet. **Important:** VS Code does not autosave in this environment, so remember to press **Ctrl+S** after each entry.
 
 For every checkpoint, record:
+
 1. The PR or request ID and the merged revision.
 2. Your observations.
 3. Your completion status (**independently**, **assisted**, **demonstration-only**, or **blocked**).
@@ -541,7 +539,7 @@ Do not reproduce the demonstration yet. Your environment has installed controlle
 
 **10 minutes.**
 
-In VS Code, open `answers/product-brief.md` (**Lab Root** folder). You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go, and press **Ctrl+S** after each entry. If VS Code is not open yet, follow [Open the prepared workspace](#open-the-prepared-workspace).
+In the VS Code Explorer, expand 📁 **Lab Root** > **answers** and open **product-brief.md**. You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go, and press **Ctrl+S** after each entry. If VS Code is not open yet, follow [Open the prepared workspace](#open-the-prepared-workspace).
 
 ### 1. Name the task and friction
 
@@ -623,7 +621,7 @@ After reading, you will be able to:
 
 > [!knowledge] **Platform concept: build the product, not the plumbing.** In Module 1 you wrote a promise. Every hour spent patching nodes, wiring ingress, or rotating credentials is an hour not spent keeping it. Choose a foundation that already handles the undifferentiated work, then spend your effort on the contract and the golden path.
 
-No infrastructure changes happen here. This page explains choices that are already made in `infra/main.tf`, which you can read in the Lab Root folder under `setup/infra/`.
+No infrastructure changes happen here. This page explains choices that are already made in `infra/main.tf`, which you can read in the VS Code Explorer under 📁 **Lab Root** > **setup** > **infra**.
 
 <a id="from-promise-to-foundation"></a>
 
@@ -761,7 +759,7 @@ By the end of this module, you will be able to:
 **Starting state on a fresh lab:**
 
 - Controllers (Crossplane, provider-opentofu, Argo CD) are installed and healthy, but not wired to anything.
-- `config/environment.yaml` (Lab Root folder) is rendered for your lab but **not applied**.
+- 📁 **Lab Root** > **config** > **environment.yaml** is rendered for your lab but **not applied**.
 - Argo CD shows no applications. The `AppEnvironment` API does not exist yet.
 - The platform repository's `requests/` folder has no `beans-dev.yaml`, and there is no `beans` team namespace.
 
@@ -853,7 +851,7 @@ kubectl --context "$CONTROL_CONTEXT" -n argocd get secret repo-platform repo-app
 
 ### 2. Connect execution, identity, and delivery permissions
 
-In VS Code, open these files in the **Platform** folder and read the comments:
+In the VS Code Explorer, expand 🏗️ **Platform** > **bootstrap** and open these files. Read the comments:
 
 - `bootstrap/provider-config.yaml`
 - `bootstrap/control.yaml`
@@ -877,7 +875,7 @@ kubectl --context "$CONTROL_CONTEXT" apply --server-side -f "$LAB_ROOT/platform/
 
 ### 3. Supply the trusted lab mapping
 
-In VS Code, open `config/environment.yaml` in the **Lab Root** folder. This is the platform's private knowledge about your lab: the repository URLs, cluster ID, model endpoint, Log Analytics workspace, and `moduleRevision`, the exact platform commit the controller runs. A developer never types any of these. The Composition reads them by name and combines them with the request.
+In the VS Code Explorer, expand 📁 **Lab Root** > **config** and open **environment.yaml**. This is the platform's private knowledge about your lab: the repository URLs, cluster ID, model endpoint, Log Analytics workspace, and `moduleRevision`, the exact platform commit the controller runs. A developer never types any of these. The Composition reads them by name and combines them with the request.
 
 The `moduleRevision` pins execution: even after you change `main`, the OpenTofu module and charts run from this fixed commit. That is how a platform team can change the API without silently changing the code that runs behind it.
 
@@ -889,7 +887,7 @@ kubectl --context "$CONTROL_CONTEXT" apply --server-side -f "$LAB_ROOT/config/en
 
 ### 4. Trace the cost-center field through the implementation
 
-Before turning on delivery, follow one field from the API to Azure. In VS Code, open these files in the **Platform** folder:
+Before turning on delivery, follow one field from the API to Azure. In the VS Code Explorer, expand 🏗️ **Platform** and open these files. Each path starts under 🏗️ **Platform**:
 
 | File                                 | Find                                                                | Why it matters                                                                                                                                |
 | ------------------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -903,7 +901,7 @@ The Composition also creates two Argo CD AppProjects per request, both limited t
 
 ### 5. Turn on delivery and establish the API
 
-In VS Code, open `bootstrap/roots.yaml` in the **Platform** folder. A root `Application` is a pointer that tells Argo CD which Git folder to watch and where to apply it:
+In the VS Code Explorer, expand 🏗️ **Platform** > **bootstrap** and open **roots.yaml**. A root `Application` is a pointer that tells Argo CD which Git folder to watch and where to apply it:
 
 | Root `Application`  | Watches on `main` | Delivers to the control cluster              |
 | ------------------- | ----------------- | -------------------------------------------- |
@@ -1024,7 +1022,7 @@ git status --short
 
 **Expected result:** the requester object ID line shows a GUID, and `git status --short` prints `?? requests/beans-dev.yaml`. If you see `STOP`, `requests/beans-dev.yaml` already exists from an earlier attempt in this lab. Do not overwrite it; check whether its PR already merged.
 
-In VS Code, open `requests/beans-dev.yaml` (**Platform** folder) and read it. Every field is intent:
+In the VS Code Explorer, expand 🏗️ **Platform** > **requests** and open **beans-dev.yaml**. Read it. Every field is intent:
 
 | Field               | Value                 | Meaning                                                                                            |
 | ------------------- | --------------------- | -------------------------------------------------------------------------------------------------- |
@@ -1331,7 +1329,7 @@ cp "$LAB_ROOT/exercises/application/values.yaml" "$LAB_ROOT/exercises/applicatio
 
 **Expected result:** `git status --short` prints nothing, because it runs before you copy the files. After the copy, `apps/fourth-coffee/` holds the two new files, untracked until you stage them in step 4.
 
-In VS Code, open `apps/fourth-coffee/values.yaml` and `apps/fourth-coffee/profile.yaml` (**App-Deploy** folder) and read them:
+In the VS Code Explorer, expand 🚀 **App-Deploy** > **apps** > **fourth-coffee** and open **values.yaml** and **profile.yaml**. Read them:
 
 - `values.yaml` is the team's configuration: the image tag, and one blank `name: ""` field. The comment above it names the binding field that fills it.
 - `profile.yaml` is an exact copy of the platform's approved `small` profile: CPU and memory for each of the three components. Leave it alone. Keeping it in its own file is what lets Backstage change it in Module 4 without touching anything else.
@@ -1632,7 +1630,7 @@ You do not write a Backstage action, register the catalog, or wire output links.
 
 ### 1. Read the template you will change
 
-In VS Code, open `backstage/templates/ai-app/template.yaml` in the **Platform** folder. Find the `profile` property under `parameters`, marked with a `Module 4` comment.
+In the VS Code Explorer, expand 🏗️ **Platform** > **backstage** > **templates** > **ai-app** and open **template.yaml**. Find the `profile` property under `parameters`, marked with a `Module 4` comment.
 
 **File excerpt (don't run):**
 
@@ -1962,7 +1960,7 @@ git --no-pager diff
 
 **Expected result:** `git status --short` prints nothing, and the diff shows one line, from the organizer-approved image tag to `tag: "latest"`. `profile.yaml` stays at `standard`. Backstage never offers a mutable tag; you are making this change by hand only to watch the guardrail work. If the diff is empty, the `sed` did not match; check that `apps/fourth-coffee/values.yaml` is unchanged from `main` and ask for help rather than editing the file by hand.
 
-In VS Code, open `apps/fourth-coffee/values.yaml` (**App-Deploy** folder) to see the change in context. `image.tag` is the only line you touched.
+In the VS Code Explorer, expand 🚀 **App-Deploy** > **apps** > **fourth-coffee** and open **values.yaml** to see the change in context. `image.tag` is the only line you touched.
 
 ### 2. Merge it and let Argo CD try
 
@@ -2100,13 +2098,13 @@ Do not patch the live Deployment, exclude the namespace from policy, or disable 
 
 ### 6. Evaluate the recovery runbook
 
-In VS Code, open `docs/recovery.md` (**Platform** folder). This is the runbook a developer finds when a change is blocked. Compare it with what you just did and note one improvement in the worksheet. For example: does it mention the retry wait you just sat through? Publishing a documentation PR is optional take-home work.
+In the VS Code Explorer, expand 🏗️ **Platform** > **docs** and open **recovery.md**. This is the runbook a developer finds when a change is blocked. Compare it with what you just did and note one improvement in the worksheet. For example: does it mention the retry wait you just sat through? Publishing a documentation PR is optional take-home work.
 
 ## Discuss: make one cost decision
 
 **10 minutes. Instructor-facilitated. No calculator or billing setup is required.**
 
-In VS Code, open `evidence/profile-comparison.md` (**Lab Root** folder). Start with provenance: this file is calculated from the profile files, not measured usage or a billing export.
+In the VS Code Explorer, expand 📁 **Lab Root** > **evidence** and open **profile-comparison.md**. Start with provenance: this file is calculated from the profile files, not measured usage or a billing export.
 
 ### Compare configuration with the quota
 
@@ -2213,7 +2211,7 @@ A new plugin, dashboard, or infrastructure product is not progress by itself. Pr
 
 **10 minutes.**
 
-In VS Code, return to `answers/product-brief.md` (**Lab Root** folder) and fill in the **Module 6** section.
+In the VS Code Explorer, return to 📁 **Lab Root** > **answers** > **product-brief.md** and fill in the **Module 6** section.
 
 ### 1. Select one observed friction point
 
@@ -2258,7 +2256,7 @@ Share selected milestone statements and the evidence that would change them. Exp
 
 Save the worksheet with relevant PR/revision references and **independent**, **assisted**, **demonstration-only**, or **blocked** results. Record technical evidence that is still pending rather than silently counting it as complete. Preserve the distinction between a profile-file PR and a no-change repeat request, a builder's model evidence and proof of authorization isolation, and configured resources and measured usage.
 
-The worksheet is your take-home artifact. To keep a copy of its non-sensitive contents, open `answers/product-brief.md` in VS Code and press **Ctrl+S**. Then select all (**Ctrl+A**), copy (**Ctrl+C**), and paste the text into a note or message on your own computer; the lab's clipboard carries text out of the lab. Check that the paste worked before you end the lab. Do not export credentials, token caches, kubeconfigs, Terraform state, shell history, or raw telemetry.
+The worksheet is your take-home artifact. To keep a copy of its non-sensitive contents, open 📁 **Lab Root** > **answers** > **product-brief.md** in the VS Code Explorer and press **Ctrl+S**. Then select all (**Ctrl+A**), copy (**Ctrl+C**), and paste the text into a note or message on your own computer; the lab's clipboard carries text out of the lab. Check that the paste worked before you end the lab. Do not export credentials, token caches, kubeconfigs, Terraform state, shell history, or raw telemetry.
 
 ## Checkpoint
 
@@ -2428,9 +2426,9 @@ In step 8 you compare `beans-dev` and `beans-prod`. Two environments on the same
 
 ### 1. Read the template
 
-In VS Code, open `backstage/templates/app-environment/template.yaml` (**Platform** folder). Read the `parameters`, then the five `steps`. Then open the three files under `backstage/templates/app-environment/skeleton/`.
+In the VS Code Explorer, expand 🏗️ **Platform** > **backstage** > **templates** > **app-environment** and open **template.yaml**. Read the `parameters`, then the five `steps`. Then expand **skeleton** in the same folder and open its three files.
 
-Compare `skeleton/platform/requests/${{values.team}}.yaml` with your own `requests/beans-dev.yaml`. They have the same fields. The only difference is that Backstage fills them in. Compare `skeleton/app-deploy/apps/${{values.application}}/values.yaml` with `apps/fourth-coffee/values.yaml` (**App-Deploy** folder). The `platform-context` name you copied from the binding in Module 3 is the same in every environment, so the template can write it for you. The platform assigns the agent ServiceAccounts in every environment, so the template does not mention them.
+Compare `skeleton/platform/requests/${{values.team}}.yaml` with your own `requests/beans-dev.yaml`. They have the same fields. The only difference is that Backstage fills them in. Compare `skeleton/app-deploy/apps/${{values.application}}/values.yaml` with 🚀 **App-Deploy** > **apps** > **fourth-coffee** > **values.yaml**. The `platform-context` name you copied from the binding in Module 3 is the same in every environment, so the template can write it for you. The platform assigns the agent ServiceAccounts in every environment, so the template does not mention them.
 
 ### 2. Find your Entra object ID
 
@@ -3269,7 +3267,7 @@ Cluster-level Container Insights is separate from this application export path; 
 | `answers/product-brief.md` | Your single worksheet for the whole session                                         |
 | `.state/`, `.credentials/` | Private state and tokens. Never copy these into Git or your notes.                  |
 
-The source for these files is bundled in the Lab Root folder under `setup/src/`. The prepared copies are personalized for your lab, so do not copy them from another attendee.
+The source for these files is bundled in the VS Code Explorer under 📁 **Lab Root** > **setup** > **src**. The prepared copies are personalized for your lab, so do not copy them from another attendee.
 
 ## Notes for facilitators
 

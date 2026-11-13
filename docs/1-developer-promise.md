@@ -71,7 +71,7 @@ Do not reproduce the demonstration yet. Your environment has installed controlle
 
 **10 minutes.**
 
-In VS Code, open `answers/product-brief.md` (**Lab Root** folder). You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go. If VS Code is not open yet, follow [Open the prepared workspace](README.md#open-the-prepared-workspace).
+In the VS Code Explorer, expand 📁 **Lab Root** > **answers** and open **product-brief.md**. You use this one worksheet for the whole workshop, with a section per module, so the promise you write now can be checked against what you observe later. Fill in the **Module 1** section as you go. If VS Code is not open yet, follow [Open the prepared workspace](README.md#open-the-prepared-workspace).
 
 ### 1. Name the task and friction
 

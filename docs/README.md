@@ -133,7 +133,7 @@ Every module follows the same rhythm:
 
 Two conventions keep the steps predictable:
 
-- **Read files in VS Code.** When a step says _In VS Code, open `api/xrd.yaml` (Platform folder)_, use the Explorer to open the file and read it. You can click around and explore.
+- **Read files in VS Code.** When a step says _In the VS Code Explorer, expand 🏗️ **Platform** > **api** and open **xrd.yaml**_, start at the top-level workspace folder named first (📁 **Lab Root**, 🏗️ **Platform**, or 🚀 **App-Deploy**), expand each folder in order, and open the file to read it. You can click around and explore.
 - **Make changes in the terminal.** Edits, Git, and GitHub actions are terminal commands you copy and run. This keeps every learner's change identical and reviewable. Do not also edit the same file in VS Code; if you do, `git --no-pager diff` shows exactly what changed so you can fix it.
 
 Most waits are reconciliation: a controller noticing a change and acting on it. Each module tells you how long to expect and how to ask Argo CD to check Git immediately instead of waiting for its next poll.
@@ -238,4 +238,4 @@ The source for these files lives in this repository under `src/`. The prepared c
 
 ## Recording your results
 
-Use `answers/product-brief.md` (Lab Root folder) as your only worksheet. For each checkpoint, record the PR or request, the merged revision, what you observed, and whether you completed it **independently**, **assisted**, **demonstration-only**, or **blocked**. Mark evidence that has not arrived as pending rather than passed. Use synthetic inputs only; do not paste credentials or raw telemetry.
+Use 📁 **Lab Root** > **answers** > **product-brief.md** in the VS Code Explorer as your only worksheet. For each checkpoint, record the PR or request, the merged revision, what you observed, and whether you completed it **independently**, **assisted**, **demonstration-only**, or **blocked**. Mark evidence that has not arrived as pending rather than passed. Use synthetic inputs only; do not paste credentials or raw telemetry.

@@ -82,7 +82,7 @@ You do not write a Backstage action, register the catalog, or wire output links.
 
 ### 1. Read the template you will change
 
-In VS Code, open `backstage/templates/ai-app/template.yaml` in the **Platform** folder. Find the `profile` property under `parameters`, marked with a `Module 4` comment:
+In the VS Code Explorer, expand 🏗️ **Platform** > **backstage** > **templates** > **ai-app** and open **template.yaml**. Find the `profile` property under `parameters`, marked with a `Module 4` comment:
 
 ```yaml
 profile:

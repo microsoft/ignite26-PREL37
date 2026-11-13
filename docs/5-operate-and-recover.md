@@ -106,7 +106,7 @@ git --no-pager diff
 
 **Expected result:** `git status --short` prints nothing, and the diff shows one line, from the organizer-approved image tag to `tag: "latest"`. `profile.yaml` stays at `standard`. Backstage never offers a mutable tag; you are making this change by hand only to watch the guardrail work. If the diff is empty, the `sed` did not match; check that `apps/fourth-coffee/values.yaml` is unchanged from `main` and ask for help rather than editing the file by hand.
 
-In VS Code, open `apps/fourth-coffee/values.yaml` (**App-Deploy** folder) to see the change in context. `image.tag` is the only line you touched.
+In the VS Code Explorer, expand 🚀 **App-Deploy** > **apps** > **fourth-coffee** and open **values.yaml** to see the change in context. `image.tag` is the only line you touched.
 
 ### 2. Merge it and let Argo CD try
 
@@ -215,13 +215,13 @@ Do not patch the live Deployment, exclude the namespace from policy, or disable 
 
 ### 6. Evaluate the recovery runbook
 
-In VS Code, open `docs/recovery.md` (**Platform** folder). This is the runbook a developer finds when a change is blocked. Compare it with what you just did and note one improvement in the worksheet. For example: does it mention the retry wait you just sat through? Publishing a documentation PR is optional take-home work.
+In the VS Code Explorer, expand 🏗️ **Platform** > **docs** and open **recovery.md**. This is the runbook a developer finds when a change is blocked. Compare it with what you just did and note one improvement in the worksheet. For example: does it mention the retry wait you just sat through? Publishing a documentation PR is optional take-home work.
 
 ## Discuss: make one cost decision
 
 **10 minutes. Instructor-facilitated. No calculator or billing setup is required.**
 
-In VS Code, open `evidence/profile-comparison.md` (**Lab Root** folder). Start with provenance: this file is calculated from the profile files, not measured usage or a billing export.
+In the VS Code Explorer, expand 📁 **Lab Root** > **evidence** and open **profile-comparison.md**. Start with provenance: this file is calculated from the profile files, not measured usage or a billing export.
 
 ### Compare configuration with the quota
 

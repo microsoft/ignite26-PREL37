@@ -55,7 +55,7 @@ A new plugin, dashboard, or infrastructure product is not progress by itself. Pr
 
 **10 minutes.**
 
-In VS Code, return to `answers/product-brief.md` (**Lab Root** folder) and fill in the **Module 6** section.
+In the VS Code Explorer, return to 📁 **Lab Root** > **answers** > **product-brief.md** and fill in the **Module 6** section.
 
 ### 1. Select one observed friction point
 

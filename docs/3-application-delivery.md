@@ -154,7 +154,7 @@ cp "$LAB_ROOT/exercises/application/values.yaml" "$LAB_ROOT/exercises/applicatio
 
 **Expected result:** `git status --short` printed nothing before you branched, and you are on `deploy-fourth-coffee`.
 
-In VS Code, open `apps/fourth-coffee/values.yaml` and `apps/fourth-coffee/profile.yaml` (**App-Deploy** folder) and read them:
+In the VS Code Explorer, expand 🚀 **App-Deploy** > **apps** > **fourth-coffee** and open **values.yaml** and **profile.yaml**. Read them:
 
 - `values.yaml` is the team's configuration: the image tag, and one blank `name: ""` field. The comment above it names the binding field that fills it.
 - `profile.yaml` is an exact copy of the platform's approved `small` profile: CPU and memory for each of the three components. Leave it alone. Keeping it in its own file is what lets Backstage change it in Module 4 without touching anything else.
