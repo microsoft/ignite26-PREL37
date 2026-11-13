@@ -607,7 +607,6 @@ You have not wired provider access, applied any manifests, or created the namesp
 
 > [!knowledge] **What you learned:** an internal developer platform is valuable when it completes a developer task, not because it exposes a large number of tools.
 
-
 ===
 
 <a id="interlude-choose-the-foundation-for-the-promise"></a>
@@ -680,7 +679,8 @@ The lab runs two clusters. Module 2 calls them the control plane and the workloa
 
 **Workload cluster: AKS Automatic.** This is where developers' applications run. Here, best practices enforced by default matter most: every team's namespace starts from a hardened baseline, nodes appear when workloads need them, and patching happens without a platform ticket. The lab adds monitoring and the App Routing Gateway API implementation (Istio) on top of the Automatic defaults.
 
-The pattern to take home: **run the platform where you want control, and run tenant workloads where you want guardrails by default.** It also keeps privileges apart. The credentials that create infrastructure live on the control cluster, never in an application namespace.
+> [!knowledge] The pattern to take home: **run the platform where you want control, and run tenant workloads where you want guardrails by default.** It also keeps privileges apart. The credentials that create infrastructure live on the control cluster, never in an application namespace.
+
 
 <a id="what-aks-provides-and-what-the-platform-adds"></a>
 
@@ -699,7 +699,8 @@ Two examples make the split concrete:
 - **Managed namespaces** are an AKS capability available on both tiers. AKS does not decide which team gets which namespace. The platform's OpenTofu module creates one per environment request, with the quota and labels the contract requires.
 - **Argo CD** runs as the AKS [Argo CD cluster extension](https://learn.microsoft.com/azure/azure-arc/kubernetes/tutorial-use-gitops-argocd) (`Microsoft.ArgoCD`), so Azure handles its installation and release train. The platform team still owns the Applications, projects, and repositories it delivers.
 
-AKS also stays open where you need it. Crossplane is installed from its upstream Helm chart, Backstage is the open source developer portal, and the Gateway API is the upstream Kubernetes API. You choose where a managed option saves effort and where an open source component fits better, on the same cluster.
+> [!knowledge] AKS also stays open where you need it. Crossplane is installed from its upstream Helm chart, Backstage is the open source developer portal, and the Gateway API is the upstream Kubernetes API. You choose where a managed option saves effort and where an open source component fits better, on the same cluster.
+
 
 ## Trade-offs to keep in mind
 
@@ -734,7 +735,8 @@ AKS also stays open where you need it. Crossplane is installed from its upstream
 
 ## What you learned
 
-A platform is only as calm as its foundation. Choose the AKS tier per cluster based on who should own each decision, let AKS carry the undifferentiated work, and build the developer contract on top.
+> [!knowledge] A platform is only as calm as its foundation. Choose the AKS tier per cluster based on who should own each decision, let AKS carry the undifferentiated work, and build the developer contract on top.
+
 
 ===
 
