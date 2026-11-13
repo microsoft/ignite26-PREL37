@@ -1912,7 +1912,6 @@ kubectl --context "$CONTROL_CONTEXT" -n argocd get application "$APP_NAME" -o cu
 - [] Backstage (Terminal 2) and Argo CD (Terminal 3) are still running.
 - [] You're in the VS Code terminal, and `echo $APP_ENV` prints `beans-dev`.
 - [] The app tunnel is running, and +++http://beans.localhost:8080+++ loads.
-- [] You have time for step 5, which can take up to 10 minutes.
 
 ## Why guardrails need a recovery path
 
@@ -2068,7 +2067,7 @@ If this prints nothing, Argo CD is mid-retry and hasn't recorded the results yet
 
 The same message appears in the Argo CD UI at `https://localhost:8443`: open `fourth-coffee` and select the sync status.
 
-![Argo CD fourth-coffee sync status panel showing the Gatekeeper denial for the latest image tag](https://placehold.co/600x400){600}
+!IMAGE[Argo CD fourth-coffee sync status panel showing the Gatekeeper denial for the latest image tag](instructions359547/5fzser97.png)
 
 **Is the app still up?**
 
