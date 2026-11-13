@@ -1,13 +1,5 @@
 @lab.Title
 
-> [env-check]: **New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
-
-> [token-repos-shot]:
-> ![GitHub fine-grained token page with Resource owner set, Only select repositories chosen, and both lab repositories ticked](https://placehold.co/600x400){600}
-
-> [token-perms-shot]:
-> ![GitHub token permissions panel with Contents and Pull requests set to Read and write, and Commit statuses set to Read-only](https://placehold.co/600x400){600}
-
 ## Welcome to your lab environment
 
 To begin, log into the virtual machine using the following credentials: +++@lab.VirtualMachine(Win11-Pro-Base).Password+++
@@ -16,11 +8,19 @@ To begin, log into the virtual machine using the following credentials: +++@lab.
 
 ## Overview
 
-An application team needs a supported place to run an AI application, a safe way to change it, and operating information it can use, without assembling the platform itself. In this workshop you build one thin slice of an internal developer platform that serves that need, then use it the way a developer would.
+An application team needs a supported place to run an applications, a safe way to change it, and operating procedures it can use, without assembling the platform itself. In this workshop you build one thin slice of an internal developer platform that serves that need, then use it the way a developer would.
 
-You wire the platform's provisioning and delivery paths, tighten an environment contract, connect a supplied AI application to platform-provided identity and configuration, publish a constrained self-service choice in Backstage, and recover from a rejected deployment. You finish by using operating evidence to choose the next platform improvement.
+In this workshop you will:
 
-The tools are the hands-on vehicle; the fundamentals are the point: what a platform team builds, why, and how to tell whether it is working. Each module calls out the fundamental it teaches and ends with a takeaway you can use with your own platform team.
+- wire the platform's provisioning and delivery paths
+- tighten an environment contract
+- connect a supplied agent application to platform-provided identity and configuration
+- publish a constrained self-service option within an internal developer platform (IDP)
+- recover from a rejected deployment
+
+You finish by using operating evidence to choose the next platform improvement.
+
+The tools in this workshop is to demonstrate how it could be implemented, not the only way to implement. The fundamentals are the point: what a platform team builds, why, and how to tell whether it is working. Each module calls out the fundamental it teaches and ends with a takeaway you can use with your own platform team.
 
 ## Platform engineering fundamentals you will practice
 
@@ -225,7 +225,9 @@ source "$LAB_ROOT/config/lab.env"
 
 ### Setup 7: Set up GitHub tokens
 
-In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-@lab.LabInstance.Id_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own. ^[See the repository access settings][token-repos-shot]
+In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-@lab.LabInstance.Id_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own.
+
+![GitHub fine-grained token page with Resource owner set, Only select repositories chosen, and both lab repositories ticked](https://placehold.co/600x400){600}
 
 > [!alert] GitHub shows each token **only once**. As you create each token, paste it into its text box below. The saved values are repeated below so you can copy them when `make auth` prompts.
 
@@ -238,8 +240,11 @@ In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and 
 **Backstage token:**
 
 1. **Token name:** +++prel37-backstage+++
-2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**. ^[See the Backstage token permissions][token-perms-shot]
-3. Copy and paste the token here: @lab.TextBox(prel37-write-token)
+2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**.
+
+![GitHub token permissions panel with Contents and Pull requests set to Read and write, and Commit statuses set to Read-only](https://placehold.co/600x400){600}
+
+4. Copy and paste the token here: @lab.TextBox(prel37-write-token)
 
 Contents and commit-status access let Backstage read the catalog and populate the Module 4 Application picker. Pull-request write access lets the template open its PR after pushing a branch.
 
@@ -765,11 +770,11 @@ A merged PR means the request is **accepted**. Creating the namespace and Azure 
 
 <a id="guided-wiring-connect-the-installed-components"></a>
 
-## Guided wiring: connect the installed components
+## Guided practice: connect the installed components
 
 Setup installed the controllers. In this section you connect them so the platform can run without your personal login.
 
-!instructions[][env-check]
+**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
 
 ### 1. Check that the controllers and credentials are ready
 
@@ -1204,7 +1209,7 @@ The prepared query in `queries/application-model-call.kql` joins each chat reque
 
 **15 minutes.**
 
-!instructions[][env-check]
+**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
 
 ### 1. Read the binding from your environment
 
@@ -1561,7 +1566,7 @@ You do not write a Backstage action, register the catalog, or wire output links.
 
 **15 minutes.**
 
-!instructions[][env-check]
+**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
 
 ### 1. Read the template you will change
 
@@ -1876,7 +1881,7 @@ kubectl --context "$AKS_CONTEXT" -n "$TEAM" logs -l app.kubernetes.io/part-of="$
 
 **15 minutes.**
 
-!instructions[][env-check]
+**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
 
 ### 1. Make the unsafe change
 
@@ -2357,7 +2362,7 @@ In step 8 you compare `beans-dev` and `beans-prod`. Two environments on the same
 
 ## Guided practice: request, approve, and use the next environment
 
-!instructions[][env-check]
+**New terminal? Load your environment first.** Every command depends on `lab.env`. If you opened a new terminal, or you see an empty value or an `unbound variable` error, run +++source ~/prel37/config/lab.env+++. Then +++echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"+++ should print `/home/labuser/prel37 beans fourth-coffee beans-dev`.
 
 ### 1. Read the template
 
