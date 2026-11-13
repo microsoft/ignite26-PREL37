@@ -12,17 +12,20 @@ An application team needs a supported place to run an applications, a safe way t
 
 In this workshop you will:
 
-- wire the platform's provisioning and delivery paths
+- wire the platform's provisioning and delivery paths 
 - tighten an environment contract
 - connect a supplied agent application to platform-provided identity and configuration
 - publish a constrained self-service option within an internal developer platform (IDP)
 - recover from a rejected deployment
-
+ 
 You finish by using operating evidence to choose the next platform improvement.
 
-The tools in this workshop is to demonstrate how it could be implemented, not the only way to implement. The fundamentals are the point: what a platform team builds, why, and how to tell whether it is working. Each module calls out the fundamental it teaches and ends with a takeaway you can use with your own platform team.
+> [!knowledge] Before we dive in, it's worth noting that the tools used in this workshop are intended to demonstrate one way of implementing these concepts, rather than the only way. The real goal here is to master the fundamentals: understanding what a platform team builds, the reasoning behind those choices, and how to determine if the platform is actually working. Each module is designed around a specific fundamental and concludes with a practical takeaway you can bring back to your own team.
+
 
 ## Platform engineering fundamentals you will practice
+
+This workshop is designed to be more than just a technical walkthrough of tools; it is an exploration of the core principles that make a platform successful. The following table outlines the key fundamentals we will cover and maps them to the specific modules where you will put these concepts into practice.
 
 | Fundamental                     | What it means                                                                                                | Where you practice it |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
@@ -36,7 +39,7 @@ The tools in this workshop is to demonstrate how it could be implemented, not th
 
 ## The BACK stack
 
-The BACK stack combines Backstage, Argo CD, Crossplane, and Kyverno. This lab uses the Azure Policy add-on for Kubernetes instead of Kyverno.
+To do this, we'll be using the "BACK stack," which is a combination of Backstage, Argo CD, Crossplane, and Kyverno. However, for this specific lab, we've swapped out Kyverno for the Azure Policy add-on for Kubernetes. You'll also notice that Crossplane is running an OpenTofu module (via the provider-opentofu) to handle the Azure resources. We've done this so that the infrastructure code stays in a readable, Terraform-compatible HCL format, which is much easier to manage than writing complex Kubernetes YAML.
 
 | Letter | Component  | Role in this platform                                                                                            | First hands-on use |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------- | ------------------ |
@@ -45,81 +48,102 @@ The BACK stack combines Backstage, Argo CD, Crossplane, and Kyverno. This lab us
 | C      | Crossplane | Platform API. Defines the `AppEnvironment` request and composes it into Azure resources and Kubernetes delivery. | Module 2           |
 | K      | Kyverno    | Policy enforcement. The Azure Policy add-on uses OPA Gatekeeper to enforce cluster policy.                       | Module 5           |
 
-Crossplane runs an OpenTofu module (through provider-opentofu) to create the Azure resources, so the infrastructure code stays readable Terraform-compatible HCL rather than a custom controller.
-
 ## What you will build
 
-The platform serves the `beans` application team and its supplied [Fourth Coffee application](https://github.com/pauldotyu/fourth-coffee): a concierge, an operations agent, and a Model Context Protocol (MCP) service that call an already hosted model. You do not write agents or provision GPUs.
+The platform is designed to support the `beans` application team and their [Fourth Coffee application](https://github.com/pauldotyu/fourth-coffee). To provide some architectural context, the application consists of a concierge service, an operations agent, and a Model Context Protocol (MCP) service, all of which interact with a pre-hosted AI model.
 
-The lab uses team and namespace `beans`, request `beans-dev`, and application `fourth-coffee`. If your lab instance uses different identifiers, stop: your lab image is out of date, so ask a proctor. Renaming the example does not rename a live namespace or recreate its Azure resources.
+> [!hint] As you move through the exercises, please keep an eye on your identifiers. This lab is configured to use the team and namespace `beans`, the request `beans-dev`, and the application `fourth-coffee`. If you see different names in your environment, please stop where you are and let a proctor know.
 
-One environment request, `beans-dev`, vends everything the team needs to run:
 
-- an AKS managed namespace, `beans`, with quota and default policy
-- one managed identity per agent, each federated to its own ServiceAccount, with access to the shared model
-- an Application Insights resource for the team's telemetry
-- namespace access for the requester in AKS desktop, plus Monitoring Reader on the team's own Application Insights
-- an Argo CD Application that delivers the team's app from Git
+A single environment request, `beans-dev`, provisions everything the team needs to get started:
 
-You work as a platform engineer while evaluating the experience of an application developer. Your workshop account has broader Azure and cluster permissions than a developer would get, so inspecting logs with it is not proof of authorization isolation.
+- A managed AKS namespace named `beans`, configured with the necessary quotas and default policies.
+- A dedicated managed identity for each agent, each federated to its own ServiceAccount and granted access to the shared AI model.
+- An Application Insights resource to handle the team's telemetry.
+- The necessary permissions for the requester, including namespace access via AKS desktop and the Monitoring Reader role for the team's Application Insights resource.
+- An Argo CD Application that handles the deployment of the team's application directly from Git.
+
+Throughout this workshop, you will be acting as a platform engineer, though you'll be evaluating the experience from the perspective of an application developer. Please keep in mind that your workshop account possesses broader Azure and cluster permissions than a standard developer would; therefore, the ability to inspect logs using this account should not be taken as proof of authorization isolation.
 
 ### One subscription, two clusters
 
-| Cluster                | Role                                                                                                           | Kubeconfig context |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------ |
-| AKS Standard control   | Argo CD, Crossplane, provider-opentofu, and composition functions. Argo CD Application objects live here.      | `$CONTROL_CONTEXT` |
-| AKS Automatic workload | Shared Gateway, admission policy (Deployment Safeguards), and the application namespaces that requests create. | `$AKS_CONTEXT`     |
+To maintain a clean separation between the tools that manage the platform and the applications that run on it, the workshop architecture utilizes two distinct clusters. This separation of concerns ensures that the management plane—where your orchestration and infrastructure tools reside—remains isolated from the workload plane, where the actual application namespaces and gateways are deployed.
 
-Every `kubectl` command in this guide passes `--context` explicitly so you always know which cluster you are talking to. Each learner has their own two clusters.
+| Cluster | Role | Kubeconfig context |
+| :--- | :--- | :--- |
+| **AKS Standard (Control)** | This cluster hosts the management plane, including Argo CD, Crossplane, the OpenTofu provider, and composition functions. It is also where the Argo CD Application objects reside. | `$CONTROL_CONTEXT` |
+| **AKS Automatic (Workload)** | This cluster serves as the workload plane, hosting the Shared Gateway, admission policies (such as Deployment Safeguards), and the application namespaces created by environment requests. | `$AKS_CONTEXT` |
+
+> [!hint] To ensure there is no confusion between the two environments, every `kubectl` command in this guide explicitly includes the `--context` flag. This way, you always know exactly which cluster you are interacting with. Please note that every participant is provided with their own dedicated pair of clusters.
 
 ### Prepared for you versus built by you
 
-**In place before Module 1:** both clusters, the platform controllers and their identities, the shared model and Log Analytics workspace, and remote state storage are provisioned for you. The [setup steps below](#set-up-your-lab-environment) create the rest: the shared Gateway, your two private GitHub repositories with controller credentials, the VS Code workspace, and local Backstage. The `AppEnvironment` API, root Argo CD Applications, and the `beans` namespace do not exist yet. That is expected.
+To ensure we can focus on the architectural fundamentals rather than spending hours on boilerplate infrastructure, some components are pre-provisioned while others are designed for you to configure yourself.
 
-**Wired by you in Module 2:** the provider configuration, delivery permissions, trusted environment mapping, and root Applications that establish the `AppEnvironment` API.
+**Pre-provisioned environment**
 
-**Changed by you through pull requests:** a required `costCenter` field, the environment request, the application's binding to platform-provided identity and configuration, a Backstage profile choice, and a rejected and recovered image change.
+Before you begin Module 1, both clusters, the platform controllers and their identities, the shared model, the Log Analytics workspace, and remote state storage are already in place. Following the [setup steps](#set-up-your-lab-environment) will finalize your environment by creating the shared Gateway, your two private GitHub repositories (including controller credentials), your VS Code workspace, and a local instance of Backstage.
 
-You do not install controllers, build images, write a full Composition, or create identities by hand. The lab does not include Prometheus, Grafana, Azure Container Registry, an AI gateway, a production environment, cert-manager, external-dns, or Key Vault.
+> [!note] Please note that the `AppEnvironment` API, root Argo CD Applications, and the `beans` namespace do not exist yet; this is intentional, as you will be creating them as part of the curriculum.
 
-## Workshop map
+**Your contributions in Module 2**
 
-Follow the modules in order. Each one builds on the environment the previous module created.
+In Module 2, you will handle the "wiring" of the platform. This includes configuring the provider, setting up delivery permissions, establishing trusted environment mapping, and deploying the root Applications that define the `AppEnvironment` API.
 
-| Time        | Module                                                                                                    | You will                                                                                            |
-| ----------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 00:00-00:35 | [1. Define the developer promise](#module-1-define-the-developer-promise)                                 | Identify the developer task, the supported choices, ownership, and how to measure success.          |
-| 00:35-01:15 | [2. Implement the environment contract](#module-2-implement-the-environment-contract)                     | Wire the platform, require cost attribution in the API, and vend the `beans` environment.           |
-| 01:15-01:25 | Break                                                                                                     |                                                                                                     |
-| 01:25-02:05 | [3. Connect and deploy the application](#module-3-connect-and-deploy-the-application)                     | Bind the app to platform identity and configuration, deploy through GitOps, and trace a model call. |
-| 02:05-02:45 | [4. Complete the self-service interface](#module-4-complete-the-self-service-interface)                   | Add a constrained profile choice to Backstage and use it to change the running app.                 |
-| 02:45-02:55 | Break                                                                                                     |                                                                                                     |
-| 02:55-03:40 | [5. Recover, inspect telemetry, and evaluate cost](#module-5-recover-inspect-telemetry-and-evaluate-cost) | See a guardrail reject an unsafe change, recover through Git, and make a cost decision.             |
-| 03:40-04:00 | [6. Plan the next platform milestone](#module-6-plan-the-next-platform-milestone)                         | Choose the next improvement and the evidence that would prove it worked.                            |
+**Iterative changes via Pull Requests**
 
-Between Modules 1 and 2, the optional [foundation interlude](#interlude-choose-the-foundation-for-the-promise) explains why the platform runs on AKS Standard and AKS Automatic. Read it before Module 2, during a break, or after the session. The [summary](#summary-and-take-home-material) is the take-home reference. If at least 35 minutes remain on the lab timer after Module 6, the [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage) vends a second environment from a single Backstage form. Use [Appendix A: troubleshooting](#appendix-a-troubleshooting-and-safe-recovery) when a result does not match.
+As you progress, you will use GitOps workflows to implement several key changes through pull requests. These include adding a required `costCenter` field, submitting an environment request, binding the application to platform-provided identity and configuration, selecting a Backstage profile, and managing a rejected image change to practice recovery.
+
+> [!alert] What's out of scope
+> 
+> To keep the workshop focused, you will not be required to install controllers, build images, write a full Composition from scratch, or create identities by hand. Additionally, please be aware that this lab does not include certain production-grade components such as Prometheus, Grafana, Azure Container Registry, an AI gateway, a production environment, cert-manager, external-dns, or Key Vault.
+
+## Workshop Roadmap
+
+To get the most out of this session, please follow the modules in the order presented. Because each module builds upon the environment created in the previous one, skipping a step may lead to configuration errors in later exercises.
+
+| Time | Module | Objective |
+| :--- | :--- | :--- |
+| 00:00-00:35 | [1. Define the developer promise](#module-1-define-the-developer-promise) | Identify the core developer tasks, supported choices, and ownership models, and determine how to measure success. |
+| 00:35-01:15 | [2. Implement the environment contract](#module-2-implement-the-environment-contract) | Wire the platform components, implement cost attribution within the API, and provision the `beans` environment. |
+| 01:15-01:25 | **Break** | — |
+| 01:25-02:05 | [3. Connect and deploy the application](#module-3-connect-and-deploy-the-application) | Bind the application to platform identity and configuration, deploy via GitOps, and trace a model call. |
+| 02:05-02:45 | [4. Complete the self-service interface](#module-4-complete-the-self-service-interface) | Enhance Backstage with constrained profile choices and use them to update the running application. |
+| 02:45-02:55 | **Break** | — |
+| 02:55-03:40 | [5. Recover, inspect telemetry, and evaluate cost](#module-5-recover-inspect-telemetry-and-evaluate-cost) | Experience a guardrail rejecting an unsafe change, perform a recovery via Git, and make a data-driven cost decision. |
+| 03:40-04:00 | [6. Plan the next platform milestone](#module-6-plan-the-next-platform-milestone) | Select the next platform improvement and define the evidence required to prove its success. |
+
+### Additional Resources and Optional Exercises
+
+If you have a few minutes between Modules 1 and 2, or during a break, we highly recommend reading the [foundation interlude](#interlude-choose-the-foundation-for-the-promise). It provides a deeper dive into why the platform is split between AKS Standard and AKS Automatic.
+
+For those who finish Module 6 with at least 35 minutes remaining on their lab timer, there is an [optional next-environment exercise](#optional-vend-the-next-environment-from-backstage) that demonstrates how to provision a second environment using a single Backstage form. 
+
+Finally, the [summary](#summary-and-take-home-material) serves as your primary take-home reference, and [Appendix A: troubleshooting](#appendix-a-troubleshooting-and-safe-recovery) is available if your results differ from the expected outcomes.
 
 ## Before you begin
 
-You should recognize Kubernetes namespaces, Deployments, Services, and YAML files, and know that a Git commit records a change. No prior Crossplane, OpenTofu, Argo CD, or Backstage experience is needed. Each module explains the platform concept before you use it.
+To get the most out of this workshop, you should have a basic familiarity with Kubernetes—specifically namespaces, Deployments, Services, and YAML—as well as a general understanding of how Git commits are used to track changes. You do not need any prior experience with Crossplane, OpenTofu, Argo CD, or Backstage; we will explain the core concepts of each tool before you are asked to use them.
 
-Use the assigned lab VM, subscription, and accounts, not personal credentials. Organizers provision the Azure foundation before you arrive. Complete [Set up your lab environment](#set-up-your-lab-environment) below before opening the workspace. Ask a proctor if something is missing or a checkpoint is blocked.
+For the duration of the session, please use the assigned lab VM, subscription, and accounts rather than your own personal credentials. The Azure foundation has been pre-provisioned for you by the organizers. Before opening your workspace, ensure you have completed the [Set up your lab environment](#set-up-your-lab-environment) section (which we'll walkthrough next). If you find that any components are missing or a checkpoint is blocked, please reach out to a proctor for assistance.
 
-Neither Microsoft Entra tenant administrator nor GitHub organization administrator permissions are required. If a step needs permissions you do not have, stop and ask your setup operator or administrator rather than broadening access or resetting work.
+Regarding access, you will not need administrator permissions for either Microsoft Entra or your GitHub organization. If you encounter a step that requires permissions you do not have, please stop and consult your setup operator or administrator. To avoid disrupting your environment or the lab's configuration, do not attempt to broaden your own access or reset your work independently.
 
 ### Your terminals at a glance
 
-Most mix-ups in this lab come from running a command in the wrong terminal. Every step that matters starts with a **Run in:** line that names the terminal and, where it matters, the folder.
+> [!alert] To ensure a smooth experience, it is important to use the correct terminal for each task. Running commands in the wrong context is one of the most common causes of confusion in this lab. To help you stay on track, every critical step in the guide begins with a **Run in:** line that specifies exactly which terminal—and, where necessary, which folder—you should be using.
 
-| Name                       | Where it lives                                | What runs there                                      | Keep it open?               |
-| -------------------------- | --------------------------------------------- | ---------------------------------------------------- | --------------------------- |
-| **Terminal 1 (setup)**     | Ubuntu (WSL) tab in Windows Terminal          | Sign-ins, `make setup`, `make auth`, opening VS Code | Yes, but you rarely return  |
-| **Terminal 2 (Backstage)** | Second Ubuntu tab                             | `make backstage` → `http://localhost:3000`           | Yes, never type in it again |
-| **Terminal 3 (Argo CD)**   | Third Ubuntu tab                              | `make argocd` → `https://localhost:8443`             | Yes, never type in it again |
-| **VS Code terminal**       | Editor-area terminal in VS Code (Lab Root)    | Every module command from Module 2 onward            | Yes, this is where you work |
-| **App tunnel**             | Second VS Code terminal, from Module 3 step 6 | Gateway port-forward → `http://beans.localhost:8080` | Yes, later modules need it  |
 
-> [!hint] Rename terminals so you can tell them apart. In Windows Terminal, right-click a tab and select **Rename tab**. In VS Code, open the command palette (**Ctrl+Shift+P**) and run **Terminal: Rename**.
+| Name | Location | Primary Purpose | Status |
+| :--- | :--- | :--- | :--- |
+| **Terminal 1 (Setup)** | Ubuntu (WSL) tab in Windows Terminal | Initial sign-ins, `make setup`, `make auth`, and launching VS Code. | Keep open, though you will rarely return to it. |
+| **Terminal 2 (Backstage)** | Second Ubuntu tab | Running `make backstage` to host the portal at `http://localhost:3000`. | Keep open; no further input is required here. |
+| **Terminal 3 (Argo CD)** | Third Ubuntu tab | Running `make argocd` to host the UI at `https://localhost:8443`. | Keep open; no further input is required here. |
+| **VS Code Terminal** | Integrated terminal in VS Code (Lab Root) | The primary workspace for nearly every command from Module 2 onward. | Keep open; this is your main area of operation. |
+| **App Tunnel** | Second VS Code terminal (from Module 3, Step 6) | Establishing the Gateway port-forward to `http://beans.localhost:8080`. | Keep open; this is required for subsequent modules. |
+
+> [!TIP]
+> To avoid confusion, we highly recommend renaming your terminals. In Windows Terminal, you can right-click a tab and select **Rename tab**. In VS Code, you can open the command palette (**Ctrl+Shift+P**) and run **Terminal: Rename**.
 
 ![Windows Terminal with three renamed Ubuntu tabs, and VS Code with two named terminals](https://placehold.co/600x400){600}
 
@@ -225,7 +249,7 @@ source "$LAB_ROOT/config/lab.env"
 
 ### Setup 7: Set up GitHub tokens
 
-In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-@lab.LabInstance.Id_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own.
+In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and create two fine-grained personal access tokens, one after the other. For both, set **Resource owner** to your own account (`User1-@lab.LabInstance.Id_events`) and **Repository access** to **Only select repositories**. In **Select repositories**, type +++prel37-@lab.LabInstance.Id+++ and tick both private repositories, +++prel37-@lab.LabInstance.Id-platform+++ and +++prel37-@lab.LabInstance.Id-app-deploy+++. GitHub adds **Metadata: Read-only** on its own. 
 
 ![GitHub fine-grained token page with Resource owner set, Only select repositories chosen, and both lab repositories ticked](https://placehold.co/600x400){600}
 
@@ -240,7 +264,7 @@ In Edge, go to +++https://github.com/settings/personal-access-tokens/new+++ and 
 **Backstage token:**
 
 1. **Token name:** +++prel37-backstage+++
-2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**.
+2. **Permissions:** add **Contents** and **Pull requests**, and change both to **Read and write**. Add **Commit statuses** and leave it at **Read-only**. 
 
 ![GitHub token permissions panel with Contents and Pull requests set to Read and write, and Commit statuses set to Read-only](https://placehold.co/600x400){600}
 
