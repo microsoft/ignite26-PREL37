@@ -861,14 +861,6 @@ Setup installed the controllers. In this section you connect them so the platfor
 > ```sh
 > source ~/prel37/config/lab.env
 > ```
->
-> Then 
->
-> ```sh
-> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
-> ```
->
-> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Check that the controllers and credentials are ready
 
@@ -881,7 +873,10 @@ kubectl --context "$CONTROL_CONTEXT" -n crossplane-system get secret module-git-
 kubectl --context "$CONTROL_CONTEXT" -n argocd get secret repo-platform repo-app-deploy cluster-workload
 ```
 
-**Expected result:** the provider and three functions report `condition met`, and all four Secrets are listed. These Secrets hold the scoped GitHub tokens from `make auth` and the workload-cluster registration. If a Secret is missing, run `cd ~/prel37/setup && make auth`, then repeat this step. If that doesn't fix it, see [workspace or local service is unavailable](#workspace-sign-in-or-local-service-is-unavailable).
+**Expected result:** the provider and three functions report `condition met`, and all four Secrets are listed. These Secrets hold the scoped GitHub tokens from `make auth` and the workload-cluster registration. 
+
+> [!help] If a Secret is missing, run `cd ~/prel37/setup && make auth`, then repeat this step. If that doesn't fix it, see [workspace or local service is unavailable](#workspace-sign-in-or-local-service-is-unavailable).
+
 
 ### 2. Connect execution, identity, and delivery permissions
 
@@ -1310,14 +1305,6 @@ The prepared query in `queries/application-model-call.kql` joins each chat reque
 > ```sh
 > source ~/prel37/config/lab.env
 > ```
->
-> Then 
->
-> ```sh
-> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
-> ```
->
-> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Read the binding from your environment
 
@@ -1681,14 +1668,6 @@ You do not write a Backstage action, register the catalog, or wire output links.
 > ```sh
 > source ~/prel37/config/lab.env
 > ```
->
-> Then 
->
-> ```sh
-> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
-> ```
->
-> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Read the template you will change
 
@@ -2010,14 +1989,6 @@ kubectl --context "$AKS_CONTEXT" -n "$TEAM" logs -l app.kubernetes.io/part-of="$
 > ```sh
 > source ~/prel37/config/lab.env
 > ```
->
-> Then 
->
-> ```sh
-> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
-> ```
->
-> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Make the unsafe change
 
@@ -2505,14 +2476,6 @@ In step 8 you compare `beans-dev` and `beans-prod`. Two environments on the same
 > ```sh
 > source ~/prel37/config/lab.env
 > ```
->
-> Then 
->
-> ```sh
-> echo "$LAB_ROOT $TEAM $APP_NAME $APP_ENV"
-> ```
->
-> Should print `/home/labuser/prel37 beans fourth-coffee beans-dev`
 
 ### 1. Read the template
 
