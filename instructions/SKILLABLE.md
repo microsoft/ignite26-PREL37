@@ -2438,7 +2438,6 @@ By the end of this exercise, you will be able to:
 
 - [] Backstage (Terminal 2), Argo CD (Terminal 3), and the app tunnel are still running.
 - [] You're in the VS Code terminal, and `echo $APP_ENV` prints `beans-dev`.
-- [] You will **not** `export APP_ENV` or `export TEAM` in this exercise. `make connect` saves exports and would break later commands.
 
 You create a second environment, `beans-prod`, for a second copy of the same application, `fourth-coffee-prod`. In this lab it uses the same `ai-dev` namespace class and the same approved image. A real production class would usually add stricter policy, approvals, or a separate cluster, and a real golden path would often scaffold source code and CI as well. This exercise skips both to stay within the approved, prebuilt workload.
 
